@@ -1,10 +1,10 @@
 # tests
 # Testing for the GVAS simulation
 #
-# Author:   Benjamin Bengfort <bbengfort@districtdatalabs.com>
+# Author:   Benjamin Bengfort <bengfort@cs.umd.edu>
 # Created:  Tue Nov 03 17:05:07 2015 -0500
 #
-# Copyright (C) 2015 District Data Labs
+# Copyright (C) 2015 University of Maryland
 # For license information, see LICENSE.txt
 #
 # ID: __init__.py [] benjamin@bengfort.com $

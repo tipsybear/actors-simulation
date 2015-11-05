@@ -1,0 +1,15 @@
+##
+## Example configuration file for the GVAS Simulation
+## Created: Thu Nov 05 15:07:29 2015 -0500
+##
+## Copy this file into one of the following locations, then edit for your
+## specific environment settings, e.g. for production or development.
+##
+## - /etc/gvas.yaml
+## - $HOME/.gvas.yaml
+## - $(pwd)/conf/gvas.yaml
+##
+
+## Set application environment
+debug:   True
+testing: False
