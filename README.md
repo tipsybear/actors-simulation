@@ -1,7 +1,10 @@
-[![Stories in Ready](https://badge.waffle.io/tipsybear/actors-simulation.png?label=ready&title=Ready)](https://waffle.io/tipsybear/actors-simulation)
 # GVAS Actors Simulation
 
 **A simulation of the Actor model of communication for a variety of applications.**
+
+[![Build Status](https://travis-ci.org/tipsybear/actors-simulation.svg)](https://travis-ci.org/tipsybear/actors-simulation)
+[![Coverage Status](https://coveralls.io/repos/tipsybear/actors-simulation/badge.svg?branch=master&service=github)](https://coveralls.io/github/tipsybear/actors-simulation?branch=master)
+[![Stories in Ready](https://badge.waffle.io/tipsybear/actors-simulation.png?label=ready&title=Ready)](https://waffle.io/tipsybear/actors-simulation)
 
 [![Petros Filipidis actor][theater.jpg]][theater_flickr]
 
