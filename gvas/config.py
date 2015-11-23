@@ -42,8 +42,12 @@ class GVASSimulationConfiguration(Configuration):
         os.path.abspath('conf/gvas.yaml')
     ]
 
-    debug     = False
-    testing   = True
+    debug        = False
+    testing      = True
+
+    # Global simulation parameters
+    random_seed  = 42
+    max_sim_time = 1000
 
 
 settings = GVASSimulationConfiguration.load()

@@ -43,27 +43,7 @@ SIM_TIME         = 5000         # Simulation time in seconds.
 ## Helper Objects
 ##########################################################################
 
-class Sequence(object):
-    """
-    An infinite sequence and counter object.
-    This is a bit more logic wrapped around `itertools.count()`
-    """
 
-    def __init__(self, start=0, end=None, step=1):
-        self.value    = start
-        self.step     = 1
-        self.terminal = end
-
-    def next(self):
-        self.value += self.step
-
-        if self.terminal is not None and self.value > self.terminal:
-            raise StopIteration("Stepped beyond terminal value!")
-
-        return self.value
-
-    def __iter__(self):
-        return self
 
 
 class Process(object):
