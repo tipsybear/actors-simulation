@@ -22,3 +22,9 @@ class GVASException(Exception):
     The root exception for any actor simulations.
     """
     pass
+
+class UnknownType(GVASException):
+    """
+    An unknown type was passed causing a TypeError of some kind.
+    """
+    pass

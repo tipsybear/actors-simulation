@@ -21,7 +21,7 @@ A command line script that acts as the entry point for simulation.
 import gvas
 import argparse
 
-from gvas import get_version
+from gvas.sims.cars import GasStationSimulation
 
 ##########################################################################
 ## Module Configuration
@@ -38,5 +38,5 @@ EPILOG      = "Please file bug reports on Github"
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=DESCRIPTION, version=VERSION, epilog=EPILOG)
     args   = parser.parse_args()
-
-    parser.error("Nothing has been implemented quite yet.")
+    sim    = GasStationSimulation()
+    sim.run()

@@ -22,6 +22,8 @@ import unittest
 from gvas.dynamo import Sequence
 from gvas.dynamo import ExponentialSequence
 from gvas.dynamo import NormalDistribution
+from gvas.dynamo import UniformDistribution
+from gvas.exceptions import UnknownType
 
 ##########################################################################
 ## Sequence Tests
@@ -92,6 +94,46 @@ class DistributionTests(unittest.TestCase):
     Make sure that the distributions behave as expected.
     """
 
+    def test_uniform_int(self):
+        """
+        Weak test of uniform int distributions.
+        """
+        dist = UniformDistribution(10, 100)
+        self.assertEqual(dist.dtype, 'int')
+        for idx in xrange(100000):
+            self.assertGreaterEqual(dist.next(), 10)
+            self.assertLessEqual(dist.next(), 100)
+
+    def test_uniform_float(self):
+        """
+        Weak test of uniform float distributions.
+        """
+        dist = UniformDistribution(1.0, 10.0)
+        self.assertEqual(dist.dtype, 'float')
+        for idx in xrange(100000):
+            self.assertGreaterEqual(dist.next(), 1.0)
+            self.assertLessEqual(dist.next(), 10.0)
+
+    def test_uniform_type_detection(self):
+        """
+        Test type detection of uniform distribution.
+        """
+        self.assertEqual(UniformDistribution(1, 5).dtype, 'int')
+        self.assertEqual(UniformDistribution(1.2, 5.8).dtype, 'float')
+
+        with self.assertRaises(UnknownType):
+            dist = UniformDistribution("bob", 2)
+
+    def test_uniform_bad_type(self):
+        """
+        Test unknown type error in uniform distribution.
+        """
+        with self.assertRaises(UnknownType):
+            dist = UniformDistribution(10, 12, 'bob')
+
+        with self.assertRaises(UnknownType):
+            dist = UniformDistribution(1, 21.2)
+
     def test_normal(self):
         """
         Weak test of normal distributions.
@@ -111,4 +153,4 @@ class DistributionTests(unittest.TestCase):
         total   = sum(dist.next() for idx in xrange(samples))
         mean    = total / samples
 
-        self.assertAlmostEqual(mean, 0.0, places=3)
+        self.assertAlmostEqual(mean, 0.0, places=2)

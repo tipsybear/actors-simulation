@@ -21,6 +21,8 @@ events or other sequences that we will use in our processes.
 
 import random
 
+from gvas.exceptions import UnknownType
+
 ##########################################################################
 ## Base Dynamo
 ##########################################################################
@@ -93,7 +95,58 @@ class ExponentialSequence(Sequence):
 ##########################################################################
 
 
-class NormalDistribution(Dynamo):
+class Distribution(Dynamo):
+    """
+    A Distribution is a Dynamo (an iterator that generates numbers) but
+    because it models random samples, a `get` method is aliased to `next`.
+    """
+
+    def get(self):
+        return self.next()
+
+
+class UniformDistribution(Distribution):
+    """
+    Generates uniformly distributed values inside of a range. Basically a
+    wrapper around `random.randint` and `random.uniform` depending on type.
+    """
+
+    def __init__(self, minval, maxval, dtype=None):
+        # Detect type from minval and maxval
+        if dtype is None:
+            if isinstance(minval, int) and isinstance(maxval, int):
+                dtype = 'int'
+            elif isinstance(minval, float) and isinstance(maxval, float):
+                dtype = 'float'
+            else:
+                raise UnknownType(
+                    "Could not detect type from range {!r} to {!r}"
+                    .format(minval, maxval)
+                )
+
+        # If dtype is given, validate it from given choices.
+        if dtype not in {'int', 'float'}:
+            raise UnknownType(
+                "{!r} is not a valid type, use int or float".format(dtype)
+            )
+
+        self.range = (minval, maxval)
+        self.dtype = dtype
+
+    def next(self):
+        jump = {
+            'int': random.randint,
+            'float': random.uniform,
+        }
+
+        return jump[self.dtype](*self.range)
+
+
+## Alias for Uniform Distribution
+Uniform = UniformDistribution
+
+
+class NormalDistribution(Distribution):
     """
     Generates normally distributed values
     """
@@ -104,3 +157,7 @@ class NormalDistribution(Dynamo):
 
     def next(self):
         return random.gauss(self.mean, self.sigma)
+
+
+## Alias for Normal Distribution
+Normal = NormalDistribution
