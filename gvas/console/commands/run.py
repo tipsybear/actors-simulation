@@ -50,7 +50,7 @@ class RunCommand(Command):
             raise UnknownSimulation('"{}" is not a valid simulation.'.format(sname))
 
         # instantiate requested simulation
-        simulation = registry[sname]()
+        simulation = registry[sname].klass()
 
         # execute simulation and return results
         return simulation.run()
