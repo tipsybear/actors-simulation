@@ -18,6 +18,8 @@ Executes a GVAS simulation.
 ##########################################################################
 
 from gvas.console.commands.base import Command
+from gvas.sims import registry
+from gvas.exceptions import UnknownSimulation
 
 ##########################################################################
 ## Command
@@ -40,4 +42,15 @@ class RunCommand(Command):
         """
         Handle command line arguments
         """
-        return '[Placeholder for simulation execution]'
+        # determine requested simulation
+        sname = args.name[0]
+
+        # verify we have a valid simulation
+        if sname not in registry:
+            raise UnknownSimulation('"{}" is not a valid simulation.'.format(sname))
+
+        # instantiate requested simulation
+        simulation = registry[sname]()
+
+        # execute simulation and return results
+        return simulation.run()

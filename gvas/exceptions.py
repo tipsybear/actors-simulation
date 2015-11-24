@@ -29,6 +29,12 @@ class UnknownType(GVASException):
     """
     pass
 
+class UnknownSimulation(GVASException):
+    """
+    The name of an unknown simulation was passed.
+    """
+    pass
+
 ##########################################################################
 ## Console Exceptions
 ##########################################################################
