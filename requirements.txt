@@ -13,3 +13,6 @@ PyYAML==3.11
 
 # Pip Stuff
 wheel==0.24.0
+
+# Console related
+colorama==0.3.3

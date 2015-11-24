@@ -28,3 +28,19 @@ class UnknownType(GVASException):
     An unknown type was passed causing a TypeError of some kind.
     """
     pass
+
+class UnknownSimulation(GVASException):
+    """
+    The name of an unknown simulation was passed.
+    """
+    pass
+
+##########################################################################
+## Console Exceptions
+##########################################################################
+
+class ConsoleError(GVASException):
+    """
+    Errors that occur from user input on the GVAS console utility
+    """
+    pass

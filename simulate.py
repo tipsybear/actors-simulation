@@ -18,25 +18,12 @@ A command line script that acts as the entry point for simulation.
 ## Imports
 ##########################################################################
 
-import gvas
-import argparse
-
-from gvas.sims.cars import GasStationSimulation
+from gvas.console import GVASUtility
 
 ##########################################################################
-## Module Configuration
-##########################################################################
-
-DESCRIPTION = "Run an Actor simulation with various parameters"
-VERSION     = gvas.get_version()
-EPILOG      = "Please file bug reports on Github"
-
-##########################################################################
-## Main Method
+## Main method
 ##########################################################################
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=DESCRIPTION, version=VERSION, epilog=EPILOG)
-    args   = parser.parse_args()
-    sim    = GasStationSimulation()
-    sim.run()
+    utility = GVASUtility.load()
+    utility.execute()
