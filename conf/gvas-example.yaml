@@ -13,3 +13,7 @@
 ## Set application environment
 debug:   True
 testing: False
+
+## Global simulation parameters
+random_seed:  42
+max_sim_time: 1000

@@ -22,13 +22,15 @@ TODO: Deprecate this simulation, it is just a stub.
 ##########################################################################
 
 import simpy
-import random
+
+from gvas.dynamo import Sequence, Uniform
+from gvas.base import Process, NamedProcess
+from gvas.base import Simulation
 
 ##########################################################################
 ## Simulation Configuration
 ##########################################################################
 
-RANDOM_SEED      = 42
 GAS_STATION_SIZE = 100          # Gallons
 THRESHOLD        = 15           # Thresdhold for calling tank truck (in %)
 FUEL_TANK_SIZE   = 14           # Gallons
@@ -36,60 +38,7 @@ FUELTANK_LEVEL   = (2, 9)       # Min/max levels of fuel tanks (in gallons)
 REFUELING_SPEED  = 0.1667       # Gallons per second
 TANK_TRUCK_TIME  = 300          # Seconds it takes fuel truck to arrive
 T_INTER          = (30, 300)    # Create a car every min/max Seconds
-SIM_TIME         = 5000         # Simulation time in seconds.
 
-
-##########################################################################
-## Helper Objects
-##########################################################################
-
-class Sequence(object):
-    """
-    An infinite sequence and counter object.
-    This is a bit more logic wrapped around `itertools.count()`
-    """
-
-    def __init__(self, start=0, end=None, step=1):
-        self.value    = start
-        self.step     = 1
-        self.terminal = end
-
-    def next(self):
-        self.value += self.step
-
-        if self.terminal is not None and self.value > self.terminal:
-            raise StopIteration("Stepped beyond terminal value!")
-
-        return self.value
-
-    def __iter__(self):
-        return self
-
-
-class Process(object):
-    """
-    Base process object.
-    """
-
-    def __init__(self, env):
-        self.env    = env
-        self.action = env.process(self.run())
-
-
-class NamedProcess(Process):
-    """
-    A process with a sequence counter and self identification.
-    """
-
-    counter = Sequence()
-
-    def __init__(self, env):
-        self._id = self.counter.next()
-        super(NamedProcess, self).__init__(env)
-
-    @property
-    def name(self):
-        return "{} #{}".format(self.__class__.__name__, self._id)
 
 ##########################################################################
 ## Simulation Processes
@@ -103,7 +52,7 @@ class Car(NamedProcess):
 
     def __init__(self, env, station):
         self.station    = station
-        self.fuel_level = random.randint(*FUELTANK_LEVEL)
+        self.fuel_level = Uniform(*FUELTANK_LEVEL).get()
 
         super(Car, self).__init__(env)
 
@@ -117,7 +66,7 @@ class Car(NamedProcess):
         """
         print "{} arrived at gas station at {:0.1f}".format(self.name, self.env.now)
         with self.station.request() as req:
-            start = env.now
+            start = self.env.now
 
             # request one of the gas pumps
             yield req
@@ -127,7 +76,7 @@ class Car(NamedProcess):
             yield self.station.pump.get(gallons_required)
 
             # The "actual" refueling process takes some time
-            yield env.timeout(gallons_required / REFUELING_SPEED)
+            yield self.env.timeout(gallons_required / REFUELING_SPEED)
 
             print "{} finished refueling in {:0.1f} seconds.".format(
                 self.name, self.env.now - start
@@ -141,6 +90,7 @@ class CarGenerator(Process):
 
     def __init__(self, env, station):
         self.station = station
+        self.uniform = Uniform(*T_INTER)
         super(CarGenerator, self).__init__(env)
 
     def run(self):
@@ -148,7 +98,7 @@ class CarGenerator(Process):
         Create a new car at the station at each random interval.
         """
         for idx in Sequence():
-            yield env.timeout(random.randint(*T_INTER))
+            yield self.env.timeout(self.uniform.get())
             Car(self.env, self.station)
 
 
@@ -183,7 +133,7 @@ class GasStationControl(Process):
         while True:
             if self.station.percent_full() < THRESHOLD:
                 # Call the tank truck!
-                print "Calling the tank truck at {} (station at {}%)".format(env.now, self.station.percent_full())
+                print "Calling the tank truck at {} (station at {}%)".format(self.env.now, self.station.percent_full())
                 yield TankTruck(self.env, self.station).action
 
             yield self.env.timeout(10) # Check every 10 seconds
@@ -201,16 +151,20 @@ class GasStation(simpy.Resource):
     def percent_full(self):
         return (float(self.pump.level) / float(self.pump.capacity)) * 100
 
+
+##########################################################################
+## Simulation
+##########################################################################
+
+class GasStationSimulation(Simulation):
+
+    def script(self):
+        bcs = GasStation(self.env)
+        GasStationControl(self.env, bcs)
+        CarGenerator(self.env, bcs)
+
+
 if __name__ == '__main__':
     # Setup and start the simulation
-    print "Gas Station Simulation"
-    random.seed(RANDOM_SEED)
-
-    # Create environment and start processes.
-    env = simpy.Environment()
-    bcs = GasStation(env)
-    GasStationControl(env, bcs)
-    CarGenerator(env, bcs)
-
-    # Execute!
-    env.run(until=SIM_TIME)
+    sim = GasStationSimulation()
+    sim.run()
