@@ -37,6 +37,9 @@ class Process(object):
         self.env    = env
         self.action = env.process(self.run())
 
+    def run(self):
+        raise NotImplementedError("Processes must implement a run method.")
+
 
 class NamedProcess(Process):
     """
