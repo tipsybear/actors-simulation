@@ -17,12 +17,24 @@ A package of discrete simulations that use the Actor model.
 ## Imports
 ##########################################################################
 
+from collections import namedtuple
+
 from .cars import GasStationSimulation
+
+##########################################################################
+## Classes
+##########################################################################
+
+Simulation = namedtuple('Simulation', 'name description klass')
 
 ##########################################################################
 ## Module Variables
 ##########################################################################
 
 registry = {
-    'cars': GasStationSimulation,
+    'cars': Simulation(
+        'cars',
+        'The tutorial simulation from SimPy to frame running simulations.',
+        GasStationSimulation
+    ),
 }

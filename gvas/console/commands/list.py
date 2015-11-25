@@ -14,13 +14,14 @@ List the available GVAS simulations that can be initiated.
 """
 
 ##########################################################################
-## Imports
+# Imports
 ##########################################################################
 
 from gvas.console.commands.base import Command
+from gvas.sims import registry
 
 ##########################################################################
-## Command
+# Command
 ##########################################################################
 
 class ListCommand(Command):
@@ -35,4 +36,12 @@ class ListCommand(Command):
         """
         Handle command line arguments
         """
-        return '[Placeholder for list of available simulations]'
+        sims = ['\t{}: {}'.format(s.name, s.description)
+                for s in registry.itervalues()]
+
+        output = '\n'.join([
+            'Available simulations:\n',
+            '\n'.join(sims),
+            ''
+        ])
+        return output
