@@ -17,15 +17,49 @@ Base classes for cluster simulation framework.
 # Imports
 ##########################################################################
 
+from six import with_metaclass
+from abc import ABCMeta
+from abc import abstractmethod, abstractproperty
+
 from gvas.base import NamedProcess
 
 ##########################################################################
 # Classes
 ##########################################################################
 
-class Machine(NamedProcess):
+class Machine(with_metaclass(ABCMeta, NamedProcess)):
 
-    pass
+    @abstractmethod
+    def create(self, *args, **kwargs):
+        """
+        Generalized factory method to return a generator that can produce
+        new instances.
+        """
+        pass
+
+    @abstractmethod
+    def send(self, *args, **kwargs):
+        """
+        Generalized factory method to return a generator that can produce
+        new instances.
+        """
+        pass
+
+    @abstractmethod
+    def recv(self, *args, **kwargs):
+        """
+        Generalized factory method to return a generator that can produce
+        new instances.
+        """
+        pass
+
+    @property
+    def network(self):
+        """
+        Returns a reference to the underlying Network instance
+        """
+        return self._network
+
 
 ##########################################################################
 # Execution
