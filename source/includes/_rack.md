@@ -10,7 +10,7 @@ There is also a link_latency to model the traffic delay to go across racks.  For
 
 ```python
 # adds a node to an existing rack
-myrack = Rack(racks=3)
+myrack = Rack.create(capacity=96, base_latency=10, egress_latency=10)
 node = Node.create(cpus=4, memory=16)
 myrack.add(node)
 ```
@@ -51,7 +51,7 @@ egress_latency     | Int  | 10       | Additional latency associated with networ
 
 ```python
 # removes a node from an existing rack
-myrack = Rack(racks=3)
+myrack = Rack.create(capacity=96, base_latency=10, egress_latency=10)
 node = Node.create(cpus=4, memory=16)
 myrack.add(node)
 
@@ -127,7 +127,7 @@ None | No result
 
 ```python
 # removes a node from an existing rack
-myrack = Rack(racks=3)
+myrack = Rack.create(capacity=96, base_latency=10, egress_latency=10)
 node = Node.create(cpus=4, memory=16)
 myrack.add(node)
 ...
