@@ -44,3 +44,21 @@ class ConsoleError(GVASException):
     Errors that occur from user input on the GVAS console utility
     """
     pass
+
+
+##########################################################################
+## Cluster Resource Exceptions
+##########################################################################
+
+class ClusterResourceException(GVASException):
+    """
+    Base exception for cluster objects
+    """
+    pass
+
+
+class NodeLacksCapacity(ClusterResourceException):
+    """
+
+    """
+    pass
