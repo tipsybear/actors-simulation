@@ -34,6 +34,15 @@ PROJECT  = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 ## Application Configuration
 ##########################################################################
 
+class DefaultsConfiguration(Configuration):
+
+    class NetworkConfiguration(Configuration):
+        capacity = 1000
+        base_latency = 10
+
+    network = NetworkConfiguration()
+
+
 class GVASSimulationConfiguration(Configuration):
 
     CONF_PATHS = [
@@ -48,6 +57,8 @@ class GVASSimulationConfiguration(Configuration):
     # Global simulation parameters
     random_seed  = 42
     max_sim_time = 1000
+
+    defaults = DefaultsConfiguration()
 
 
 settings = GVASSimulationConfiguration.load()
