@@ -59,6 +59,7 @@ class ClusterResourceException(GVASException):
 
 class NodeLacksCapacity(ClusterResourceException):
     """
-
+    An error condition wherein a Node cannot accept a Program due to the
+    lack of available resources (cpu, memory, etc.).
     """
     pass

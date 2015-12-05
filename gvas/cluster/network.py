@@ -19,13 +19,68 @@ Simulation class to model a network resource that has available bandwidth.
 
 from simpy import Container
 
+from gvas.config import settings
+
 ##########################################################################
 # Classes
 ##########################################################################
 
+
 class Network():
 
-    pass
+    def __init__(self, *args, **kwargs):
+        self._capacity = kwargs.get(
+            'capacity',
+            settings.defaults.network.capacity
+        )
+        self.medium = Container(self.env, capacity=capacity)
+        super(self.__class__, self).__init__(*args, **kwargs)
+
+    def create(self):
+        """
+        Generalized factory method to return a generator that can produce
+        new instances.
+        """
+        pass
+
+    def send(self, size):
+        """
+        Removes available bandwidth thereby simulating additional traffic on
+        the network medium.
+        """
+        pass
+
+    def recv(self):
+        """
+        Adds to available bandwidth thereby simulating removal of traffic on
+        the network medium.
+        """
+        pass
+
+    @property
+    def bandwidth(self):
+        """
+        Represents the current (available) bandwidth associated with this
+        resource.
+        """
+        pass
+
+    @property
+    def capacity(self):
+        """
+        Represents the maximum bandwidth associated with this resource.
+        """
+        return self._capacity
+
+    @property
+    def latency(self):
+        """
+        Computed property to return the network’s latency. This value is
+        derived from the base_latency plus a function of the available
+        bandwidth.
+        """
+        pass
+
 
 ##########################################################################
 # Execution

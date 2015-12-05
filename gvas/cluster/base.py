@@ -17,41 +17,37 @@ Base classes for cluster simulation framework.
 # Imports
 ##########################################################################
 
-from six import with_metaclass
-from abc import ABCMeta
-from abc import abstractmethod, abstractproperty
-
 from gvas.base import NamedProcess
 
 ##########################################################################
 # Classes
 ##########################################################################
 
-class Machine(with_metaclass(ABCMeta, NamedProcess)):
+class Machine(NamedProcess):
 
-    @abstractmethod
+    def __init__(self, *args, *kwargs):
+        self._network = Network.create()
+        super(Machine).__init__(self, *args, **kwargs)
+
+    @classmethod
     def create(self, *args, **kwargs):
         """
         Generalized factory method to return a generator that can produce
         new instances.
         """
-        pass
+        raise NotImplementedError('Subclasses should override this method.')
 
-    @abstractmethod
     def send(self, *args, **kwargs):
         """
-        Generalized factory method to return a generator that can produce
-        new instances.
+        Generalized method to put message onto the contained network.
         """
-        pass
+        raise NotImplementedError('Subclasses should override this method.')
 
-    @abstractmethod
     def recv(self, *args, **kwargs):
         """
-        Generalized factory method to return a generator that can produce
-        new instances.
+        Generalized method to obtain a message from the contained network.
         """
-        pass
+        raise NotImplementedError('Subclasses should override this method.')
 
     @property
     def network(self):

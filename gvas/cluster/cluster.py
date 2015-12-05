@@ -17,6 +17,7 @@ Simulation class to model a cluster of resources.
 # Imports
 ##########################################################################
 
+from gvas.config import settings
 from .base import Machine
 
 ##########################################################################
@@ -25,7 +26,73 @@ from .base import Machine
 
 class Cluster(Machine):
 
-    pass
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+
+    def create(self):
+        """
+        Generalized factory method to return a generator that can produce
+        new instances.
+        """
+        pass
+
+    def filter(self, evaluator):
+        """
+        Uses the evaluator function to test against the Node instances and
+        return a list of matches.
+        """
+        pass
+
+    def first(self, evaluator):
+        """
+        Uses the evaluator function to test against the Node instances and
+        return the first match.
+        """
+        pass
+
+    def send(self, *args, **kwargs):
+        """
+        Generalized method to put message onto the contained network.
+        """
+        pass
+
+    def recv(self, *args, **kwargs):
+        """
+        Generalized method to obtain a message from the contained network.
+        """
+        pass
+
+    def add(self, node):
+        """
+        Adds a node to the cluster.  By default, will choose the first rack
+        with available space.
+        """
+        pass
+
+    def remove(self, node):
+        """
+        Removes a node from the cluster.
+        """
+        pass
+
+    @property
+    def id(self):
+        """
+        The unqiue identifier for this instance.
+
+        Note that the _id property is initially set in the NamedProcess
+        ancestor class and so all subclasses may share the same Sequence.
+        """
+        return self._id
+
+
+
+
+
+
+
+
+
 
 ##########################################################################
 # Execution
