@@ -63,3 +63,9 @@ class NodeLacksCapacity(ClusterResourceException):
     lack of available resources (cpu, memory, etc.).
     """
     pass
+
+class BandwidthExceeded(ClusterResourceException):
+    """
+    A `Network` resource has exceeded its capacity.
+    """
+    pass
