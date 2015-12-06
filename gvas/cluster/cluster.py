@@ -18,7 +18,10 @@ Simulation class to model a cluster of resources.
 ##########################################################################
 
 from gvas.config import settings
+from gvas.exceptions import ClusterLacksCapacity
 from .base import Machine
+from .rack import Rack
+from .node import Node
 
 ##########################################################################
 # Classes
@@ -26,15 +29,35 @@ from .base import Machine
 
 class Cluster(Machine):
 
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
+    def __init__(self, env, *args, **kwargs):
+        rack_options = kwargs.get('rack_options', {})
+        node_options = kwargs.get('node_options', {})
+        self.rack_generator = kwargs.get(
+            'rack_generator',
+            Rack.create(env, node_options=node_options, **rack_options)
+        )
+        self.size = kwargs.get(
+            'size',
+            settings.defaults.cluster.size
+        )
+        node_options = kwargs.get('node_options', {})
+        self.node_generator = kwargs.get(
+            'node_generator',
+            Node.create(env, **node_options)
+        )
 
-    def create(self):
+        racks = [self.rack_generator.next() for i in range(self.size)]
+        self.racks = dict((r.id, r) for r in racks)
+        super(self.__class__, self).__init__(env, *args, **kwargs)
+
+    @classmethod
+    def create(cls, env, *args, **kwargs):
         """
         Generalized factory method to return a generator that can produce
         new instances.
         """
-        pass
+        while True:
+            yield cls(env, *args, **kwargs)
 
     def filter(self, evaluator):
         """
@@ -62,18 +85,35 @@ class Cluster(Machine):
         """
         pass
 
-    def add(self, node):
+    def add(self, node=None, rack=None, rack_id=None):
         """
-        Adds a node to the cluster.  By default, will choose the first rack
-        with available space.
+        Adds a node to the cluster.  Will add the node to the specified rack or
+        rack_id.  Otherwise, will choose the first rack with available space.
         """
-        pass
+        if not rack:
+            if rack_id:
+                rack = self.racks[rack_id]
+            rack = self.first_available_rack
+
+        if not node:
+            node = self.node_generator.next()
+
+        rack.add(node)
+        return node
+
 
     def remove(self, node):
         """
         Removes a node from the cluster.
         """
         pass
+
+    def run(self):
+        """
+        Method to kickoff process simulation.
+        """
+        # TODO: placeholder code
+        yield self.env.timeout(1)
 
     @property
     def id(self):
@@ -85,7 +125,19 @@ class Cluster(Machine):
         """
         return self._id
 
+    @property
+    def first_available_rack(self):
+        """
 
+        """
+        ids = sorted(self.racks.keys())
+
+        for id in ids:
+            if not self.racks[id].full:
+                return self.racks[id]
+
+        else:
+            raise ClusterLacksCapacity()
 
 
 

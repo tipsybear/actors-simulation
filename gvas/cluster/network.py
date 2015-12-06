@@ -18,9 +18,7 @@ Simulation class to model a network resource that has available bandwidth.
 ##########################################################################
 
 import simpy
-from simpy import Container
 
-from gvas.base import NamedProcess
 from gvas.config import settings
 from gvas.exceptions import BandwidthExceeded
 
@@ -41,7 +39,7 @@ class Network(object):
             'base_latency',
             settings.defaults.network.base_latency
         )
-        self.medium = Container(
+        self.medium = simpy.Container(
             env,
             init=self.capacity,
             capacity=self.capacity

@@ -57,10 +57,24 @@ class ClusterResourceException(GVASException):
     pass
 
 
+class ClusterLacksCapacity(ClusterResourceException):
+    """
+    An error condition wherein a Cluster cannot accept a Node due to the
+    lack of available space (all racks are full).
+    """
+    pass
+
 class NodeLacksCapacity(ClusterResourceException):
     """
     An error condition wherein a Node cannot accept a Program due to the
     lack of available resources (cpu, memory, etc.).
+    """
+    pass
+
+class RackLacksCapacity(ClusterResourceException):
+    """
+    An error condition wherein a Rack cannot accept a Node due to the
+    lack of available space.
     """
     pass
 

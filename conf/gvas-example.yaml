@@ -22,3 +22,10 @@ defaults:
   network:
     capacity: 500
     base_latency: 10
+  cluster:
+    size: 4
+  rack:
+    size: 96
+  node:
+    cpus: 4
+    memory: 16

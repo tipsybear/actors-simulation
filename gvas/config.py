@@ -40,7 +40,20 @@ class DefaultsConfiguration(Configuration):
         capacity = 1000
         base_latency = 10
 
+    class NodeConfiguration(Configuration):
+        cpus = 4
+        memory = 16
+
+    class ClusterConfiguration(Configuration):
+        size = 2
+
+    class RackConfiguration(Configuration):
+        size = 96
+
     network = NetworkConfiguration()
+    cluster = ClusterConfiguration()
+    rack = RackConfiguration()
+    node = NodeConfiguration()
 
 
 class GVASSimulationConfiguration(Configuration):
