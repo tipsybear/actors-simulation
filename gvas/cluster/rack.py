@@ -27,14 +27,17 @@ from .base import Machine
 class Rack(Machine):
 
     def __init__(self, *args, **kwargs):
+        self.nodes = {}
         super(self.__class__, self).__init__(*args, **kwargs)
 
-    def create(self):
+    @classmethod
+    def create(cls, env):
         """
         Generalized factory method to return a generator that can produce
         new instances.
         """
-        pass
+        while True:
+            yield cls(env, *args, **kwargs)
 
     def filter(self, evaluator):
         """
