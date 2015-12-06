@@ -18,6 +18,7 @@ Base classes for cluster simulation framework.
 ##########################################################################
 
 from gvas.base import NamedProcess
+from .network import Network
 
 ##########################################################################
 # Classes
@@ -25,9 +26,9 @@ from gvas.base import NamedProcess
 
 class Machine(NamedProcess):
 
-    def __init__(self, *args, *kwargs):
-        self._network = Network.create()
-        super(Machine).__init__(self, *args, **kwargs)
+    def __init__(self, env, *args, **kwargs):
+        self._network = Network.create(env, parent=self).next()
+        super(Machine, self).__init__(env)
 
     @classmethod
     def create(self, *args, **kwargs):

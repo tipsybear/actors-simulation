@@ -17,6 +17,8 @@ Simulation class to model a compute node.
 # Imports
 ##########################################################################
 
+import simpy
+
 from gvas.config import settings
 from gvas.exceptions import NodeLacksCapacity
 from .base import Machine
@@ -29,11 +31,13 @@ class Node(Machine):
 
     def __init__(self, *args, **kwargs):
         self.rack = kwargs.get('rack', None)
+        self.cpus = kwargs.get('cpus', settings.defaults.node.cpus)
+        self.memory = kwargs.get('cpus', settings.defaults.node.memory)
         self.programs = {}
         super(self.__class__, self).__init__(*args, **kwargs)
 
     @classmethod
-    def create(cls, env):
+    def create(cls, env, *args, **kwargs):
         """
         Generalized factory method to return a generator that can produce
         new instances.
@@ -60,6 +64,13 @@ class Node(Machine):
         """
         pass
 
+    def run(self):
+        """
+        Method to kickoff process simulation.
+        """
+        # TODO: replace with actual code or returned Program process
+        yield self.env.timeout(1)
+
     @property
     def address(self):
         """
@@ -78,32 +89,20 @@ class Node(Machine):
         return self._id
 
     @property
-    def cpus(self):
-        """
-        Number of CPUs for this node.
-        """
-        pass
-
-    @property
-    def memory(self):
-        """
-        Gigabytes of memory for this node
-        """
-        pass
-
-    @property
     def idle_cpus(self):
         """
         Number of available CPUs for this node.
         """
-        pass
+        used = sum([p.cpus for p in self.programs.iteritems()])
+        return self.cpus - used
 
     @property
     def idle_memory(self):
         """
         Gigabytes of available memory for this node
         """
-        pass
+        used = sum([p.memory for p in self.programs.iteritems()])
+        return self.memory - used
 
 
 
@@ -113,4 +112,10 @@ class Node(Machine):
 ##########################################################################
 
 if __name__ == '__main__':
-    pass
+    env = simpy.Environment()
+
+    factory = Node.create(env, cpus=4, memory=16)
+    n = factory.next()
+
+    print n.cpus
+    print n.idle_cpus
