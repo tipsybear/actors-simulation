@@ -28,3 +28,8 @@ vizualization:
 ## Global simulation parameters
 random_seed:  42
 max_sim_time: 1000
+
+defaults:
+  network:
+    capacity: 500
+    base_latency: 10

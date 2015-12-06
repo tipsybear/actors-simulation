@@ -1,0 +1,147 @@
+# gvas.cluster.network
+# Simulation class to model a network resource that has available bandwidth.
+#
+# Author:   Allen Leis <allen.leis@gmail.com>
+# Created:  Fri Dec 04 16:52:45 2015 -0500
+#
+# Copyright (C) 2015 Allen Leis
+# For license information, see LICENSE.txt
+#
+# ID: network.py [] allen.leis@gmail.com $
+
+"""
+Simulation class to model a network resource that has available bandwidth.
+"""
+
+##########################################################################
+# Imports
+##########################################################################
+
+import simpy
+from simpy import Container
+
+from gvas.base import NamedProcess
+from gvas.config import settings
+from gvas.exceptions import BandwidthExceeded
+
+##########################################################################
+# Classes
+##########################################################################
+
+
+class Network(object):
+
+    def __init__(self, env, parent=None, *args, **kwargs):
+        self.parent = parent
+        self.capacity = kwargs.get(
+            'capacity',
+            settings.defaults.network.capacity
+        )
+        self.base_latency = kwargs.get(
+            'base_latency',
+            settings.defaults.network.base_latency
+        )
+        self.medium = Container(
+            env,
+            init=self.capacity,
+            capacity=self.capacity
+        )
+
+    @classmethod
+    def create(cls, env, parent=None, *args, **kwargs):
+        """
+        Generalized factory method to return a generator that can produce
+        new instances.
+        """
+        while True:
+            yield cls(env, parent, *args, **kwargs)
+
+    def send(self, size):
+        """
+        Removes available bandwidth thereby simulating additional traffic on
+        the network medium.
+        """
+        try:
+            self.medium.get(size)
+        except ValueError:
+            raise BandwidthExceeded()
+
+    def recv(self, size):
+        """
+        Adds to available bandwidth thereby simulating removal of traffic on
+        the network medium.
+        """
+        try:
+            self.medium.put(size)
+        except ValueError:
+            raise
+
+    @property
+    def bandwidth(self):
+        """
+        Represents the current (available) bandwidth associated with this
+        resource.
+        """
+        return self.medium.level
+
+    @property
+    def latency(self):
+        """
+        Computed property to return the network's latency. This value is
+        derived from the base_latency plus a function of the available
+        bandwidth.
+        """
+        delay = 100 - int(float(self.bandwidth) / float(self.capacity) * 100)
+        return self.base_latency + delay
+
+    def __str__(self):
+        return "Network: capacity={},  base_latency={}".format(
+            self.capacity,
+            self.base_latency
+        )
+
+    def __repr__(self):
+        return "<{}>".format(self.__str__())
+
+
+##########################################################################
+# Execution
+##########################################################################
+
+if __name__ == '__main__':
+    env = simpy.Environment()
+    parent = object()
+
+    gen = Network.create(env, parent, capacity=500)
+    nw = gen.next()
+
+    assert nw.parent, parent
+
+    print "%r" % nw
+    print "%s\n" % nw
+
+    def tattle(x):
+        print "Available bandwidth: {}".format(x.bandwidth)
+
+    tattle(nw)
+    print "Latency is at: {}\n".format(nw.latency)
+
+    print "Sending message with size 100"
+    nw.send(100)
+    tattle(nw)
+    print "Latency is at: {}\n".format(nw.latency)
+
+    print "Sending message with size 100"
+    nw.send(100)
+    tattle(nw)
+    print "Latency is at: {}\n".format(nw.latency)
+
+    print "Receiving message with size 100"
+    nw.recv(100)
+    tattle(nw)
+    print "Latency is at: {}\n".format(nw.latency)
+
+    print "Receiving message with size 100"
+    nw.recv(100)
+    tattle(nw)
+    print "Latency is at: {}\n".format(nw.latency)
