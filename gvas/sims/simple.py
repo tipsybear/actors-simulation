@@ -62,10 +62,39 @@ class SimpleSimulation(Simulation):
 class PingProgram(Program):
 
     def __init__(self, env, *args, **kwargs):
+        self.randy = Uniform(10, 100, 'int')
 
         self.wait_for_recv = self.env.Event()
 
         super(PingProgram, self).__init__(env, *args, **kwargs)
+
+
+    def wait(self):
+        """
+        Part of the circle of life for this program.
+        """
+        print "Program {}: waiting for recv at {}".format(self.id, self.env.now)
+        # duration = yield self.env.process(wait_for_recv)
+        duration = yield self.env.timeout(self.randy.next())
+        print "Program {}: received at {}\n".format(self.id, self.env.now)
+
+    def work(self):
+        """
+        Part of the circle of life for this program.
+        """
+        print "Program {}: starting work at {}".format(self.id, self.env.now)
+        yield self.env.timeout(self.randy.next())
+        print "Program {}: done working at {}\n".format(self.id, self.env.now)
+
+    def send(self):
+        """
+        Send a message to one or more nodes.
+        """
+        print "Program {}: sending at {}".format(self.id, self.env.now)
+
+        # TODO: CREATE EVENT TO TRIGGER WAKEUP FOR ANOTHER NODE
+
+        print "Program {}: done sending at {}\n".format(self.id, self.env.now)
 
     def run(self):
         """
@@ -76,18 +105,10 @@ class PingProgram(Program):
             - does a send to one or more other Programs/Nodes
             - repeat
         """
-        random = Uniform(10, 100, 'int')
         while True:
-
-            # wait random amount of time
-            print "Program {}: waiting at {}".format(self.id, self.env.now)
-            yield self.env.timeout(random.next())
-            print "Program {}: done waiting at {}\n".format(self.id, self.env.now)
-
-            # send to random node
-            print "Program {}: sending at {}".format(self.id, self.env.now)
-            yield self.env.timeout(random.next())
-            print "Program {}: done sending at {}\n".format(self.id, self.env.now)
+            duration = self.wait()
+            self.work(duration)
+            self.send()
 
 
 ##########################################################################
