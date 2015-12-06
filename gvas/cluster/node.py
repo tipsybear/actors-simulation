@@ -32,7 +32,7 @@ class Node(Machine):
     def __init__(self, env, *args, **kwargs):
         self.rack = kwargs.get('rack', None)
         self.cpus = kwargs.get('cpus', settings.defaults.node.cpus)
-        self.memory = kwargs.get('cpus', settings.defaults.node.memory)
+        self.memory = kwargs.get('memory', settings.defaults.node.memory)
         self.programs = {}
         super(self.__class__, self).__init__(env, *args, **kwargs)
 
@@ -57,19 +57,25 @@ class Node(Machine):
         """
         pass
 
-    def assign(self):
+    def assign(self, program):
         """
         Ingests a new Program for processing.  If there aren't enough resources
         available then raises `NodeLacksCapacity`.
         """
-        pass
+        # TODO: ensure we have capacity
+
+        self.programs[program.id] = program
+        program.node = self
+        program.run()
 
     def run(self):
         """
         Method to kickoff process simulation.
         """
         # TODO: replace with actual code or returned Program process
-        yield self.env.timeout(1)
+        while True:
+            yield self.env.timeout(1)
+            # print "Node {} checking in at {}".format(self.id, self.env.now)
 
     @property
     def address(self):

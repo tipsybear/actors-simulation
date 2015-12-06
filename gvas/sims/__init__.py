@@ -20,6 +20,7 @@ A package of discrete simulations that use the Actor model.
 from collections import namedtuple
 
 from .cars import GasStationSimulation
+from .simple import SimpleSimulation
 
 ##########################################################################
 ## Classes
@@ -36,5 +37,10 @@ registry = {
         'cars',
         'The tutorial simulation from SimPy to frame running simulations.',
         GasStationSimulation
+    ),
+    'simple': Simulation(
+        'simple',
+        'A straightforward simulation to test the Cluster framework.',
+        SimpleSimulation
     ),
 }

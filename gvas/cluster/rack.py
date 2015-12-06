@@ -29,6 +29,7 @@ from .node import Node
 class Rack(Machine):
 
     def __init__(self, env, *args, **kwargs):
+        self.cluster = kwargs.get('cluster', None)
         node_options = kwargs.get('node_options', {})
         self.node_generator = kwargs.get(
             'node_generator',
@@ -89,6 +90,7 @@ class Rack(Machine):
             node = self.node_generator.next()
 
         self.nodes[node.id] = node
+        node.rack = self
 
     def remove(self, node):
         """

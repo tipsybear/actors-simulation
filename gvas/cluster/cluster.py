@@ -34,7 +34,12 @@ class Cluster(Machine):
         node_options = kwargs.get('node_options', {})
         self.rack_generator = kwargs.get(
             'rack_generator',
-            Rack.create(env, node_options=node_options, **rack_options)
+            Rack.create(
+                env,
+                cluster=self,
+                node_options=node_options,
+                **rack_options
+            )
         )
         self.size = kwargs.get(
             'size',
