@@ -29,12 +29,12 @@ from .base import Machine
 
 class Node(Machine):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, env, *args, **kwargs):
         self.rack = kwargs.get('rack', None)
         self.cpus = kwargs.get('cpus', settings.defaults.node.cpus)
         self.memory = kwargs.get('cpus', settings.defaults.node.memory)
         self.programs = {}
-        super(self.__class__, self).__init__(*args, **kwargs)
+        super(self.__class__, self).__init__(env, *args, **kwargs)
 
     @classmethod
     def create(cls, env, *args, **kwargs):
@@ -103,6 +103,16 @@ class Node(Machine):
         """
         used = sum([p.memory for p in self.programs.iteritems()])
         return self.memory - used
+
+    def __str__(self):
+        return "Node: id: {}, cpus={},  memory={}".format(
+            self.id,
+            self.cpus,
+            self.memory
+        )
+
+    def __repr__(self):
+        return "<{}>".format(self.__str__())
 
 
 

@@ -18,7 +18,9 @@ Simulation class to model an enclosure for physical computers.
 ##########################################################################
 
 from gvas.config import settings
+from gvas.exceptions import RackLacksCapacity
 from .base import Machine
+from .node import Node
 
 ##########################################################################
 # Classes
@@ -26,12 +28,21 @@ from .base import Machine
 
 class Rack(Machine):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, env, *args, **kwargs):
+        node_options = kwargs.get('node_options', {})
+        self.node_generator = kwargs.get(
+            'node_generator',
+            Node.create(env, **node_options)
+        )
+        self.size = kwargs.get(
+            'size',
+            settings.defaults.rack.size
+        )
         self.nodes = {}
-        super(self.__class__, self).__init__(*args, **kwargs)
+        super(self.__class__, self).__init__(env, *args, **kwargs)
 
     @classmethod
-    def create(cls, env):
+    def create(cls, env, *args, **kwargs):
         """
         Generalized factory method to return a generator that can produce
         new instances.
@@ -65,18 +76,33 @@ class Rack(Machine):
         """
         pass
 
-    def add(self, node):
+    def add(self, node=None):
         """
         Adds a node to the cluster.  By default, will choose the first rack
-        with available space.
+        with available space. If no node was passed, then use internal Node
+        generator.
         """
-        pass
+        if self.space < 1:
+            raise RackLacksCapacity()
+
+        if not node:
+            node = self.node_generator.next()
+
+        self.nodes[node.id] = node
 
     def remove(self, node):
         """
         Removes a node from the cluster.
         """
-        pass
+        # for funsies, return the removed node or None if it wasnt found.
+        return self.nodes.pop(node.id, None)
+
+    def run(self):
+        """
+        Method to kickoff process simulation.
+        """
+        # TODO: placeholder code
+        yield self.env.timeout(1)
 
     @property
     def id(self):
@@ -87,6 +113,20 @@ class Rack(Machine):
         ancestor class and so all subclasses may share the same Sequence.
         """
         return self._id
+
+    @property
+    def space(self):
+        """
+        Convenience property to return computed space available for more nodes.
+        """
+        return self.size - len(self.nodes)
+
+    @property
+    def full(self):
+        """
+        Convenience property to determine whether rack is at capacity.
+        """
+        return self.size <= len(self.nodes)
 
     @property
     def base_latency(self):
@@ -102,6 +142,15 @@ class Rack(Machine):
         """
         pass
 
+    def __str__(self):
+        return "Rack: id: {}, size={},  nodes={}".format(
+            self.id,
+            self.size,
+            len(self.nodes)
+        )
+
+    def __repr__(self):
+        return "<{}>".format(self.__str__())
 
 
 ##########################################################################
