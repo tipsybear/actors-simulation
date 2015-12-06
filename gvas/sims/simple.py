@@ -52,49 +52,78 @@ class SimpleSimulation(Simulation):
         cluster = gen.next()
 
         nodes = [cluster.add() for i in range(4)]
-        print nodes
+        print "Adding nodes:\n {}\n".format(nodes)
 
         pgen = PingProgram.create(self.env)
-        print pgen
-        p = pgen.next()
+        nodes[0].assign(pgen.next())
+        nodes[1].assign(pgen.next())
 
 
+
+"""
+Program needs something like a work queue (container) such that if it's working
+and then recieves a message, it can queue the work for the message.
+
+Program should only wait if there are no messages/work in the queue
+"""
 class PingProgram(Program):
 
     def __init__(self, env, *args, **kwargs):
-        self.randy = Uniform(10, 100, 'int')
+        self.randy = Uniform(10, 50, 'int')
 
-        self.wait_for_recv = self.env.Event()
+        self.wait_finished = env.event()
+        self.msg_recieved = env.event()
+        self.finished_work = env.event()
+        self.msg_sent = env.event()
 
         super(PingProgram, self).__init__(env, *args, **kwargs)
 
 
+    def receive(self):
+        self.msg_recieved.succeed()
+
     def wait(self):
         """
-        Part of the circle of life for this program.
+        Waits until its event is triggered.
         """
-        print "Program {}: waiting for recv at {}".format(self.id, self.env.now)
-        # duration = yield self.env.process(wait_for_recv)
-        duration = yield self.env.timeout(self.randy.next())
+        print "Program {}: waiting for recv at {}\n".format(self.id, self.env.now)
+        yield self.env.timeout(self.randy.next())
         print "Program {}: received at {}\n".format(self.id, self.env.now)
 
-    def work(self):
+        self.msg_recieved.succeed()
+        self.msg_recieved = self.env.event()
+
+        # force advance of the clock
+        yield self.env.timeout(1)
+
+    def work(self, duration=None):
         """
-        Part of the circle of life for this program.
+        Simulates work by going to sleep for a bit.
         """
-        print "Program {}: starting work at {}".format(self.id, self.env.now)
-        yield self.env.timeout(self.randy.next())
+
+        if not duration:
+            duration = self.randy.next()
+
+        print "Program {}: starting work at {}\n".format(self.id, self.env.now)
+        yield self.env.timeout(duration)
         print "Program {}: done working at {}\n".format(self.id, self.env.now)
+
+        self.finished_work.succeed()
+        self.finished_work = self.env.event()
+
+        # force advance of the clock
+        yield self.env.timeout(1)
 
     def send(self):
         """
         Send a message to one or more nodes.
         """
-        print "Program {}: sending at {}".format(self.id, self.env.now)
-
+        print "Program {}: sending at {}\n".format(self.id, self.env.now)
         # TODO: CREATE EVENT TO TRIGGER WAKEUP FOR ANOTHER NODE
-
         print "Program {}: done sending at {}\n".format(self.id, self.env.now)
+
+        # force advance of the clock
+        yield self.env.timeout(1)
 
     def run(self):
         """
@@ -105,16 +134,19 @@ class PingProgram(Program):
             - does a send to one or more other Programs/Nodes
             - repeat
         """
+        counter = 0
         while True:
-            duration = self.wait()
-            self.work(duration)
-            self.send()
+            yield self.env.process(self.wait())
+            yield self.env.process(self.work())
+            yield self.env.process(self.send())
 
+            counter = counter + 1
+            print '==========================\nProgram {}: end of loop {}\n==========================\n'.format(self.id, counter)
 
 ##########################################################################
 # Execution
 ##########################################################################
 
 if __name__ == '__main__':
-    s = SimpleSimulation()
+    s = SimpleSimulation(max_sim_time=100)
     s.run()
