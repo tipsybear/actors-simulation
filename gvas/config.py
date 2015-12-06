@@ -50,10 +50,15 @@ class DefaultsConfiguration(Configuration):
     class RackConfiguration(Configuration):
         size = 96
 
+    class ProgramConfiguration(Configuration):
+        cpus = 1
+        memory = 2
+
     network = NetworkConfiguration()
     cluster = ClusterConfiguration()
     rack = RackConfiguration()
     node = NodeConfiguration()
+    program = ProgramConfiguration()
 
 
 class GVASSimulationConfiguration(Configuration):

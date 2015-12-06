@@ -26,33 +26,48 @@ from gvas.base import NamedProcess
 
 class Program(NamedProcess):
 
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
+    def __init__(self, env, *args, **kwargs):
+        self.cpus = kwargs.get('cpus', settings.defaults.program.cpus)
+        self.memory = kwargs.get('memory', settings.defaults.program.memory)
+        self.ports = kwargs.get('ports', [])
+        self.node = kwargs.get('node', None)
+        super(Program, self).__init__(env, *args, **kwargs)
 
-    def create(self):
+    @classmethod
+    def create(cls, env, *args, **kwargs):
         """
         Generalized factory method to return a generator that can produce
         new instances.
         """
-        pass
+        while True:
+            yield cls(env, *args, **kwargs)
 
-    def run(self):
-        """
-        Kicks off execution of a simulated program. This method contains a loop
-        to cycle through specific behaviors such as:
-            - wait for recv
-            - sleep for random time
-            - does a send to one or more other Programs/Nodes
-            - repeat
-        """
-        pass
+    def random_node(self):
+        cluster = self.node.rack.cluster
 
     @property
-    def ports(self):
+    def id(self):
         """
-        A list of port numbers this program uses.
+        The unqiue identifier for this instance.
+
+        Note that the _id property is initially set in the NamedProcess
+        ancestor class and so all subclasses may share the same Sequence.
         """
-        pass
+        return self._id
+
+    def __str__(self):
+        return "Program: id: {}, cpus={},  memory={}".format(
+            self.id,
+            self.cpus,
+            self.memory
+        )
+
+    def __repr__(self):
+        return "<{}>".format(self.__str__())
+
+
+
+
 
 
 ##########################################################################
