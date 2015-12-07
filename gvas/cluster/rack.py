@@ -73,19 +73,48 @@ class Rack(Machine):
         """
         Generalized method to put message onto the contained network.
         """
-        print "Rack {}: sending message at {}\n".format(self.id, self.env.now)
+        # determine destination rack
+        rack_id, node_id = map(lambda x: int(x), address.split(':'))
+        dest_rack = self.cluster.racks[rack_id]
+
+        # put on internal network
+        self.env.process(self._send(address=address, port=port, size=size, value=value))
+
+        # put on external network if needed
+        if self != dest_rack:
+            self.env.process(dest_rack._send(address=address, port=port, size=size, value=value))
+
+    def _send(self, address, port, size, value=None):
+        """
+        simpy process to simulate sending a message onto a bus and then triggering
+        the recv after an appropriate latency period.
+        """
+        print "Rack {}: sending message ({}) at {}\n".format(self.id, size, self.env.now)
+
+        # reserve bandwidth to put msg on the bus
         self.network.send(size)
 
+        # yield for required latency
         yield self.env.timeout(self.network.latency)
+
+        # initiate recv to pick msg off the bus
         self.recv(address=address, port=port, size=size, value=value)
 
     def recv(self, address, port, size, value=None):
         """
         Generalized method to obtain a message from the contained network.
         """
-        print "Rack {}: delivering (recv) message at {}\n".format(self.id, self.env.now)
+        print "Rack {}: recv message (size: {}, value: {}) at {}\n".format(self.id, size, value, self.env.now)
+
+        # determine destination rack
+        rack_id, node_id = map(lambda x: int(x), address.split(':'))
+
+        # de-allocate the reserved bandwidth on the bus
         self.network.recv(size)
-        self.nodes[address].recv(port=port, size=size, value=value)
+
+        # hand off to local node if we have it otherwise ignore as outgoing traffic
+        if rack_id == self.id:
+            self.nodes[node_id].recv(port=port, size=size, value=value)
 
     def add(self, node=None):
         """

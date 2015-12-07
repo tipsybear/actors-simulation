@@ -39,8 +39,8 @@ from gvas.dynamo import Uniform
 
 # NOTE: these will come from config once sim is stable
 
-CLUSTER_SIZE    = 1
-RACK_SIZE       = 1
+CLUSTER_SIZE    = 2
+RACK_SIZE       = 4
 NODE_COUNT      = 8
 START_COUNT     = 4     # number of programs to start with work phase
 NODE_CPUS       = 1
@@ -58,14 +58,18 @@ MAX_MSG_VALUE   = 50
 class SimpleSimulation(Simulation):
 
     def script(self):
+        rack_options = {
+            'size': RACK_SIZE
+        }
         node_options = {
             'cpus': NODE_CPUS,
             'memory': NODE_MEMORY
         }
         gen = Cluster.create(
             self.env,
-            size=RACK_SIZE,
-            node_options=node_options
+            size=CLUSTER_SIZE,
+            rack_options=rack_options,
+            node_options=node_options,
         )
         cluster = gen.next()
 

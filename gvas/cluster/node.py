@@ -50,7 +50,7 @@ class Node(Machine):
         """
         Puts a message onto the parent Rack.
         """
-        self.env.process(self.rack.send(address=address, port=port, size=size, value=value))
+        self.rack.send(address=address, port=port, size=size, value=value)
 
     def recv(self, port, size, value=None):
         """
@@ -79,7 +79,6 @@ class Node(Machine):
 
         self.programs[program.id] = program
         program.node = self
-        program.run()
 
     def run(self):
         """
