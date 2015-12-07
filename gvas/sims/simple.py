@@ -88,12 +88,6 @@ class SimpleSimulation(Simulation):
             p.work_queue.append(work_maker.next())
 
 
-"""
-Program needs something like a work queue (container) such that if it's working
-and then receives a message, it can queue the work for the message.
-
-Program should only wait if there are no messages/work in the queue
-"""
 class PingProgram(Program):
 
     def __init__(self, env, *args, **kwargs):
