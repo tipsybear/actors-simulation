@@ -76,7 +76,10 @@ class Cluster(Machine):
         Uses the evaluator function to test against the Node instances and
         return the first match.
         """
-        pass
+        for n in self.nodes:
+            if evaluator(n):
+                return n
+        return None
 
     def send(self, *args, **kwargs):
         """
@@ -129,6 +132,12 @@ class Cluster(Machine):
         ancestor class and so all subclasses may share the same Sequence.
         """
         return self._id
+
+    @property
+    def nodes(self):
+        for r in self.racks.itervalues():
+            for n in r.nodes.itervalues():
+                yield n
 
     @property
     def first_available_rack(self):
