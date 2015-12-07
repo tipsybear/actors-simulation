@@ -39,6 +39,10 @@ class Rack(Machine):
             'size',
             settings.defaults.rack.size
         )
+        self.egress_latency = kwargs.get(
+            'egress_latency',
+            settings.defaults.rack.egress_latency
+        )
         self.nodes = {}
         super(self.__class__, self).__init__(env, *args, **kwargs)
 
@@ -134,20 +138,6 @@ class Rack(Machine):
         Convenience property to determine whether rack is at capacity.
         """
         return self.size <= len(self.nodes)
-
-    @property
-    def base_latency(self):
-        """
-        Property to return the underlying latency for traffic for this instance.
-        """
-        pass
-
-    @property
-    def egress_latency(self):
-        """
-        Property to return the latency for traffic leaving this instance.
-        """
-        pass
 
     def __str__(self):
         return "Rack: id: {}, size={},  nodes={}".format(

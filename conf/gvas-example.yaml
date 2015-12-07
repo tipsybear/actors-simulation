@@ -31,12 +31,16 @@ max_sim_time: 1000
 
 defaults:
   network:
-    capacity: 500
+    capacity: 1000
     base_latency: 10
   cluster:
     size: 4
   rack:
     size: 96
+    egress_latency: 20
   node:
     cpus: 4
     memory: 16
+  program:
+    cpus: 1
+    memory: 4

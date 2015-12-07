@@ -59,6 +59,7 @@ class DefaultsConfiguration(Configuration):
 
     class RackConfiguration(Configuration):
         size = 96
+        egress_latency = 10
 
     class ProgramConfiguration(Configuration):
         cpus = 1

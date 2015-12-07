@@ -2,7 +2,6 @@
 # A relatively simple simulation to exercise the cluster objects.
 #
 # TODO:
-#   - fix the loss of bandwidth when testing at higher node counts
 #   - add time series output
 #   - fix node address to be rack + node ids.
 #   - make so that messages can travel across racks with appropriate latency.

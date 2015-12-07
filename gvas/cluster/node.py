@@ -92,7 +92,10 @@ class Node(Machine):
         """
         Addressable identifier for this node containing the Rack and Node ID.
         """
-        return self.id
+        return "{}:{}".format(
+            self.rack.id,
+            self.id
+        )
 
     @property
     def id(self):
