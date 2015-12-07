@@ -17,10 +17,13 @@ Helper functions for creating output vizualiations from simulations.
 ## Imports
 ##########################################################################
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 from gvas.config import settings
+from peak.util.imports import lazyModule
+
+# Perform lazy loading of vizualiation libraries
+sns = lazyModule('seaborn')
+plt = lazyModule('matplotlib.pyplot')
+np  = lazyModule('numpy')
 
 ##########################################################################
 ## Helper Functions
@@ -32,11 +35,21 @@ def configure(**kwargs):
     """
 
     # Get configurations to do modifications on them.
-    style   = kwargs.get('style', settings.vizualization.style)
-    context = kwargs.get('style', settings.vizualization.context)
-    palette = kwargs.get('style', settings.vizualization.palette)
+    style   = kwargs.pop('style', settings.vizualization.style)
+    context = kwargs.pop('context', settings.vizualization.context)
+    palette = kwargs.pop('palette', settings.vizualization.palette)
 
     # Set the configurations on SNS
     sns.set_style(style)
     sns.set_context(context)
     sns.set_palette(palette)
+
+    return kwargs
+
+
+def plot_kde(series, **kwargs):
+    """
+    Helper function to plot a density estimate of some distribution.
+    """
+    kwargs = configure(**kwargs)
+    return sns.distplot(np.array(series), **kwargs)

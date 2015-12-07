@@ -60,3 +60,4 @@ target/
 .DS_Store
 conf/gvas.yaml
 docs/slate
+.ipynb_checkpoints

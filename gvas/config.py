@@ -58,7 +58,8 @@ class GVASSimulationConfiguration(Configuration):
     CONF_PATHS    = [
         '/etc/gvas.yaml',
         os.path.expanduser('~/.gvas.yaml'),
-        os.path.abspath('conf/gvas.yaml')
+        os.path.abspath('conf/gvas.yaml'),
+        os.path.normpath('../conf/gvas.yaml'),
     ]
 
     debug         = False
