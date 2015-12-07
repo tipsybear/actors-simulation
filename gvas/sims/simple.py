@@ -55,8 +55,12 @@ class SimpleSimulation(Simulation):
         print "Adding nodes:\n {}\n".format(nodes)
 
         pgen = PingProgram.create(self.env)
-        nodes[0].assign(pgen.next())
-        nodes[1].assign(pgen.next())
+
+        p = pgen.next()
+        # p.start_waiting = False
+        nodes[0].assign(p)
+
+        # nodes[1].assign(pgen.next())
 
 
 
@@ -70,14 +74,8 @@ class PingProgram(Program):
 
     def __init__(self, env, *args, **kwargs):
         self.randy = Uniform(10, 50, 'int')
-
-        self.start_waiting = env.event()
-        self.wait_finished = env.event()
         self.msg_recieved = env.event()
-
-        self.finished_work = env.event()
-        self.msg_sent = env.event()
-
+        self.start_waiting = kwargs.get('start_waiting', True)
         super(PingProgram, self).__init__(env, *args, **kwargs)
 
 
@@ -88,62 +86,30 @@ class PingProgram(Program):
         """
         Waits until its event is triggered.
         """
-        while True:
-            # print "wait() is waiting for an event"
-            yield self.start_waiting
+
+        self.msg_recieved = self.env.event()
+        try:
             print "Program {}: waiting for recv at {}\n".format(self.id, self.env.now)
-
-            try:
-                yield self.env.timeout(self.randy.next())
-            except simpy.Interrupt as i:
-                print "Program {}: got interupted at {}\n".format(self.id, self.env.now)
-
+            yield self.env.timeout(self.randy.next())
             print "Program {}: tired of waiting {}\n".format(self.id, self.env.now)
-
-            self.start_waiting = self.env.event()
-
-            self.wait_finished.succeed()
-            self.wait_finished = self.env.event()
-
+        except simpy.Interrupt as i:
+            print "Program {}: got interupted at {}\n".format(self.id, self.env.now)
 
     def work(self, duration=None):
         """
         Simulates work by going to sleep for a bit.
         """
-
-        while True:
-            # print "work() is waiting for an event"
-            yield self.msg_recieved | self.wait_finished
-
-            if not duration:
-                duration = self.randy.next()
-
-            print "Program {}: starting work at {}\n".format(self.id, self.env.now)
-            yield self.env.timeout(duration)
-            print "Program {}: done working at {}\n".format(self.id, self.env.now)
-
-            self.finished_work.succeed()
-            self.finished_work = self.env.event()
-
+        print "Program {}: starting work at {}\n".format(self.id, self.env.now)
+        yield self.env.timeout(duration or self.randy.next())
+        print "Program {}: done working at {}\n".format(self.id, self.env.now)
 
     def send(self):
         """
         Send a message to one or more nodes.
         """
-
-        while True:
-            # print "send() is waiting for an event"
-            yield self.finished_work
-
-            print "Program {}: sending at {}\n".format(self.id, self.env.now)
-            # TODO: CREATE EVENT TO TRIGGER WAKEUP FOR ANOTHER NODE
-            print "Program {}: done sending at {}\n".format(self.id, self.env.now)
-
-            print "\n==================\n"
-
-
-            # self.start_waiting = self.env.event()
-            self.start_waiting.succeed()
+        print "Program {}: sending at {}\n".format(self.id, self.env.now)
+        yield self.env.timeout(1)
+        print "Program {}: done sending at {}\n".format(self.id, self.env.now)
 
     def run(self):
         """
@@ -154,15 +120,18 @@ class PingProgram(Program):
             - does a send to one or more other Programs/Nodes
             - repeat
         """
-        counter = 0
-        if True:
-            self.env.process(self.wait())
-            self.env.process(self.work())
-            self.env.process(self.send())
+        while True:
+            if self.start_waiting:
+                waiting = self.env.process(self.wait())
+                yield waiting
+            else:
+                self.start_waiting = True
 
-        self.start_waiting.succeed()
+            working = self.env.process(self.work())
+            yield working
 
-        yield self.env.timeout(1)
+            sending = self.env.process(self.send())
+            yield sending
 
 ##########################################################################
 # Execution
