@@ -2,6 +2,8 @@
 # A relatively simple simulation to exercise the cluster objects.
 #
 # TODO:
+#   - fix the loss of bandwidth when testing at higher node counts
+#   - add time series output
 #   - fix node address to be rack + node ids.
 #   - make so that messages can travel across racks with appropriate latency.
 #   - programs should spin in the send method if rack throws BandwidthExceeded
@@ -40,8 +42,8 @@ from gvas.dynamo import Uniform
 
 CLUSTER_SIZE    = 1
 RACK_SIZE       = 1
-NODE_COUNT      = 4
-START_COUNT     = 2     # number of programs to start with work phase
+NODE_COUNT      = 8
+START_COUNT     = 4     # number of programs to start with work phase
 NODE_CPUS       = 1
 NODE_MEMORY     = 4
 
