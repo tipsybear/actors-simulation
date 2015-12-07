@@ -14,6 +14,17 @@
 debug:   True
 testing: False
 
+## Visualization parameters
+vizualization:
+    # The Seaborn style can be one of darkgrid, whitegrid, dark, white, ticks
+    style: whitegrid
+
+    # The Seaborn context can be one of paper, notebook, talk, poster
+    context: paper
+
+    # The Seaborn palette can be one of null, deep, muted, pastel, bright, dark, or colorblind
+    palette: null
+
 ## Global simulation parameters
 random_seed:  42
 max_sim_time: 1000
