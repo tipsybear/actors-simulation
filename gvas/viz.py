@@ -53,3 +53,11 @@ def plot_kde(series, **kwargs):
     """
     kwargs = configure(**kwargs)
     return sns.distplot(np.array(series), **kwargs)
+
+
+def plot_results(results, **kwags):
+    """
+    Sort of a circular plot function so that we can store all vizualization
+    related utilities in this package rather than in the results package.
+    """
+    pass
