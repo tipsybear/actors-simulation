@@ -1,30 +1,25 @@
-# gvas
-# The simulation library, handily named gvas for simple namespacing.
+# gvas.version
+# Helper module for GVAS version information
 #
-# Author:   Benjamin Bengfort <bengfort@cs.umd.edu>
-# Created:  Tue Nov 03 17:02:44 2015 -0500
+# Author:   Allen Leis <allen.leis@gmail.com>
+# Created:  Tue Nov 24 16:59:17 2015 -0500
 #
-# Copyright (C) 2015 University of Maryland
+# Copyright (C) 2015 Allen Leis
 # For license information, see LICENSE.txt
 #
-# ID: __init__.py [] benjamin@bengfort.com $
+# ID: version.py [] allen.leis@gmail.com $
 
 """
-The simulation library, handily named gvas for simple namespacing.
+Helper module for GVAS version information
 """
 
 ##########################################################################
-## Imports
-##########################################################################
-
-
-##########################################################################
-## Module Info
+## Versioning
 ##########################################################################
 
 __version_info__ = {
     'major': 0,
-    'minor': 2,
+    'minor': 1,
     'micro': 0,
     'releaselevel': 'final',
     'serial': 0,
@@ -33,7 +28,7 @@ __version_info__ = {
 
 def get_version(short=False):
     """
-    Prints the version.
+    Returns the version from the version info.
     """
     assert __version_info__['releaselevel'] in ('alpha', 'beta', 'final')
     vers = ["%(major)i.%(minor)i" % __version_info__, ]
@@ -44,8 +39,10 @@ def get_version(short=False):
                               __version_info__['serial']))
     return ''.join(vers)
 
+
 ##########################################################################
-## Package Version
+## Execution
 ##########################################################################
 
-__version__ = get_version()
+if __name__ == '__main__':
+    print get_version()
