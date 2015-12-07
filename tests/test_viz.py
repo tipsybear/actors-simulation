@@ -32,7 +32,8 @@ class VizTests(unittest.TestCase):
         """
         Test that the viz module is lazily imported.
         """
-
+        
         self.assertEqual(type(gvas.viz.sns), type(lazyModule('seaborn')))
         self.assertEqual(type(gvas.viz.plt), type(lazyModule('matplotlib.pyplot')))
         self.assertEqual(type(gvas.viz.np), type(lazyModule('numpy')))
+        self.assertEqual(type(gvas.viz.pd), type(lazyModule('pandas')))
