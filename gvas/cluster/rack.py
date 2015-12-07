@@ -65,17 +65,23 @@ class Rack(Machine):
         """
         pass
 
-    def send(self, *args, **kwargs):
+    def send(self, address, port, size, value=None):
         """
         Generalized method to put message onto the contained network.
         """
-        pass
+        print "Rack {}: sending message at {}\n".format(self.id, self.env.now)
+        self.network.send(size)
 
-    def recv(self, *args, **kwargs):
+        yield self.env.timeout(self.network.latency)
+        self.recv(address=address, port=port, size=size, value=value)
+
+    def recv(self, address, port, size, value=None):
         """
         Generalized method to obtain a message from the contained network.
         """
-        pass
+        print "Rack {}: delivering (recv) message at {}\n".format(self.id, self.env.now)
+        self.network.recv(size)
+        self.nodes[address].recv(port=port, size=size, value=value)
 
     def add(self, node=None):
         """
@@ -103,7 +109,6 @@ class Rack(Machine):
         """
         Method to kickoff process simulation.
         """
-        # TODO: placeholder code
         yield self.env.timeout(1)
 
     @property
