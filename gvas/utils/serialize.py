@@ -33,6 +33,12 @@ class JSONEncoder(json.JSONEncoder):
         """
         return dthandler(obj)
 
+    def encode_ndarray(self, obj):
+        """
+        Convert np.array to a list object.
+        """
+        return list(obj)
+
     def default(self, obj):
         """
         Perform encoding of complex objects.

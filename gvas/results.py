@@ -24,6 +24,8 @@ from gvas.config import settings
 from gvas.viz import plot_results
 from gvas.utils.serialize import JSONEncoder
 from gvas.utils.decorators import Timer
+from gvas.utils.timez import HUMAN_DATETIME
+from gvas.utils.timez import epochptime
 
 ##########################################################################
 ## Results Object
@@ -44,12 +46,13 @@ class Results(object):
 
     def __init__(self, **kwargs):
         # Set reasonable defaults for results
-        self.results    = []
+        self.results    = {}
         self.timer      = Timer()
         self.simulation = None
         self.version    = gvas.get_version()
         self.randseed   = settings.random_seed
         self.timesteps  = settings.max_sim_time
+        self.cluster    = settings.defaults
 
         # Set any properties that need to be serialized (override above)
         for key, val in kwargs.iteritems():
@@ -79,3 +82,15 @@ class Results(object):
         Alias for gvas.viz.plot_results
         """
         return plot_results(self, **kwargs)
+
+    def get_title(self):
+        """
+        Returns a pretty title for the results.
+        """
+        if hasattr(self, 'title'):
+            return self.title
+
+        finished = self.timer.finished if isinstance(self.timer, Timer) else self.timer['finished']
+        return '{} Simulation on {}'.format(
+            self.simulation, epochptime(finished).strftime(HUMAN_DATETIME)
+        )
