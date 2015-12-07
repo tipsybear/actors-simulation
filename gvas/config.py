@@ -31,6 +31,16 @@ from confire import ImproperlyConfigured
 PROJECT  = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 ##########################################################################
+## Nested Configurations
+##########################################################################
+
+class VisualizationConfiguration(Configuration):
+
+    style         = "whitegrid"
+    context       = "paper"
+    palette       = None
+
+##########################################################################
 ## Application Configuration
 ##########################################################################
 
@@ -63,18 +73,22 @@ class DefaultsConfiguration(Configuration):
 
 class GVASSimulationConfiguration(Configuration):
 
-    CONF_PATHS = [
+    CONF_PATHS    = [
         '/etc/gvas.yaml',
         os.path.expanduser('~/.gvas.yaml'),
-        os.path.abspath('conf/gvas.yaml')
+        os.path.abspath('conf/gvas.yaml'),
+        os.path.normpath('../conf/gvas.yaml'),
     ]
 
-    debug        = False
-    testing      = True
+    debug         = False
+    testing       = True
+
+    # Visualization parameters
+    vizualization = VisualizationConfiguration()
 
     # Global simulation parameters
-    random_seed  = 42
-    max_sim_time = 1000
+    random_seed   = 42
+    max_sim_time  = 1000
 
     defaults = DefaultsConfiguration()
 

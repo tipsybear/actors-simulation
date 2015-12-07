@@ -21,6 +21,8 @@ events or other sequences that we will use in our processes.
 
 import random
 
+from gvas.viz import plot_kde
+from gvas.config import settings
 from gvas.exceptions import UnknownType
 
 ##########################################################################
@@ -103,6 +105,23 @@ class Distribution(Dynamo):
 
     def get(self):
         return self.next()
+
+    def plot(self, n=100, **kwargs):
+        """
+        Vizualizes the density estimate of the distribution.
+        """
+        random.seed(kwargs.get('random_seed', settings.random_seed))
+        series = [self.get() for x in xrange(n)]
+        axe = plot_kde(series, **kwargs)
+
+        axe.set_ylabel('frequency')
+        axe.set_xlabel('value')
+        axe.set_title(
+            '{} Distribution Plot'.format(
+            self.__class__.__name__.rstrip('Distribution')
+        ))
+        
+        return axe
 
 
 class UniformDistribution(Distribution):
