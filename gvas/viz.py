@@ -24,6 +24,7 @@ from peak.util.imports import lazyModule
 sns = lazyModule('seaborn')
 plt = lazyModule('matplotlib.pyplot')
 np  = lazyModule('numpy')
+pd  = lazyModule('pandas')
 
 ##########################################################################
 ## Helper Functions
@@ -53,3 +54,23 @@ def plot_kde(series, **kwargs):
     """
     kwargs = configure(**kwargs)
     return sns.distplot(np.array(series), **kwargs)
+
+
+def plot_results(results, **kwargs):
+    """
+    Sort of a circular plot function so that we can store all vizualization
+    related utilities in this package rather than in the results package.
+    """
+    # Convert data into pandas readable values
+    series = np.dstack(results.results.values())
+    names  = pd.Series(results.results.keys(), name="results")
+    step   = pd.Series(range(0, results.timesteps), name="timestep")
+
+    # Create time series plot
+    kwargs = configure(**kwargs)
+    axe = sns.tsplot(series, time=step, condition=names, value="value")
+
+    # Configure the graphic
+    axe.set_title(results.get_title())
+
+    return axe

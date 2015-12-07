@@ -31,6 +31,15 @@ from confire import ImproperlyConfigured
 PROJECT  = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 ##########################################################################
+## Serializable Configuration -- for writing Config as Results
+##########################################################################
+
+class SerializableConfiguration(Configuration):
+
+    def serialize(self):
+        return dict(self.options())
+
+##########################################################################
 ## Nested Configurations
 ##########################################################################
 
@@ -44,24 +53,24 @@ class VisualizationConfiguration(Configuration):
 ## Application Configuration
 ##########################################################################
 
-class DefaultsConfiguration(Configuration):
+class DefaultsConfiguration(SerializableConfiguration):
 
-    class NetworkConfiguration(Configuration):
+    class NetworkConfiguration(SerializableConfiguration):
         capacity = 1000
         base_latency = 10
 
-    class NodeConfiguration(Configuration):
+    class NodeConfiguration(SerializableConfiguration):
         cpus = 4
         memory = 16
 
-    class ClusterConfiguration(Configuration):
+    class ClusterConfiguration(SerializableConfiguration):
         size = 2
 
-    class RackConfiguration(Configuration):
+    class RackConfiguration(SerializableConfiguration):
         size = 96
         egress_latency = 10
 
-    class ProgramConfiguration(Configuration):
+    class ProgramConfiguration(SerializableConfiguration):
         cpus = 1
         memory = 2
 
