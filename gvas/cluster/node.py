@@ -46,17 +46,23 @@ class Node(Machine):
         while True:
             yield cls(env, *args, **kwargs)
 
-    def send(self, address, size, value=None):
+    def send(self, address, port, size, value=None):
         """
-        Puts a message onto the containing Rack.
+        Puts a message onto the parent Rack.
         """
-        pass
+        self.env.process(self.rack.send(address=address, port=port, size=size, value=value))
 
-    def recv(self):
+    def recv(self, port, size, value=None):
         """
-        Obtains  a message from the containing Rack.
+        Obtains a message from the parent Rack.
         """
-        pass
+        program = None
+        for p in self.programs.itervalues():
+            if port in p.ports:
+                program = p
+
+        if program:
+            program.recv(value)
 
     def assign(self, program):
         """
@@ -89,7 +95,7 @@ class Node(Machine):
         """
         Addressable identifier for this node containing the Rack and Node ID.
         """
-        pass
+        return self.id
 
     @property
     def id(self):

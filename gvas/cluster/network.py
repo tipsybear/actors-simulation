@@ -61,6 +61,7 @@ class Network(object):
         """
         try:
             self.medium.get(size)
+            print self, '\n'
         except ValueError:
             raise BandwidthExceeded()
 
@@ -71,6 +72,7 @@ class Network(object):
         """
         try:
             self.medium.put(size)
+            print self, '\n'
         except ValueError:
             raise
 
@@ -93,9 +95,11 @@ class Network(object):
         return self.base_latency + delay
 
     def __str__(self):
-        return "Network: capacity={},  base_latency={}".format(
+        return "Network: capacity={},  bandwidth={}, base_latency={}, latency={}".format(
             self.capacity,
-            self.base_latency
+            self.bandwidth,
+            self.base_latency,
+            self.latency,
         )
 
     def __repr__(self):

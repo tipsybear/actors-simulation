@@ -17,6 +17,8 @@ Simulation class to model a cluster of resources.
 # Imports
 ##########################################################################
 
+import random
+
 from gvas.config import settings
 from gvas.exceptions import ClusterLacksCapacity
 from .base import Machine
@@ -69,7 +71,7 @@ class Cluster(Machine):
         Uses the evaluator function to test against the Node instances and
         return a list of matches.
         """
-        pass
+        return filter(evaluator, self.nodes)
 
     def first(self, evaluator):
         """
@@ -80,6 +82,13 @@ class Cluster(Machine):
             if evaluator(n):
                 return n
         return None
+
+    def random(self, evaluator=lambda n: True):
+        """
+        Uses the evaluator function to test against the Node instances and
+        return the first match.
+        """
+        return random.choice(self.filter(evaluator))
 
     def send(self, *args, **kwargs):
         """

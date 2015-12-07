@@ -30,9 +30,9 @@ from gvas.dynamo import Uniform
 ##########################################################################
 
 CLUSTER_SIZE    = 1
-RACK_SIZE       = 16
-NODE_COUNT      = 2
-START_COUNT     = 1     # number of programs to start with work phase
+RACK_SIZE       = 1
+NODE_COUNT      = 32
+START_COUNT     = 16     # number of programs to start with work phase
 NODE_CPUS       = 1
 NODE_MEMORY     = 4
 
@@ -73,7 +73,6 @@ class SimpleSimulation(Simulation):
             n.programs[random.choice(n.programs.keys())].start_waiting = False
 
 
-
 """
 Program needs something like a work queue (container) such that if it's working
 and then receives a message, it can queue the work for the message.
@@ -90,6 +89,7 @@ class PingProgram(Program):
         super(PingProgram, self).__init__(env, *args, **kwargs)
 
     def recv(self, size):
+        print "Program {}: received a message of size {} at {}\n".format(self.id, size, self.env.now)
         self.msg_received.succeed()
 
     def wait(self):
@@ -98,7 +98,6 @@ class PingProgram(Program):
         """
         try:
             print "Program {}: waiting for recv at {}\n".format(self.id, self.env.now)
-            # yield self.env.timeout(self.randy.next())
             yield self.msg_received
             self.msg_received = self.env.event()
             print "Program {}: received message! {}\n".format(self.id, self.env.now)
@@ -120,12 +119,11 @@ class PingProgram(Program):
         print "Program {}: sending at {}\n".format(self.id, self.env.now)
         yield self.env.timeout(1)
 
-        # find other node
-        node = self.node.rack.cluster.first(lambda n: n.id != self.node.id and n.programs)
-        node.programs[node.programs.keys()[0]].recv(self.message_sizer.next())
-
-        # call receive on first program
-        recipient = random.choice(node.programs.keys())
+        # find other node and send the message
+        recip = self.node.rack.cluster.random(
+            lambda n: n.id != self.node.id and n.programs
+        )
+        self.node.send(address=recip.address, port=3333, size=50, value=100)
 
         print "Program {}: done sending at {}\n".format(self.id, self.env.now)
 
