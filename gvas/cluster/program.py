@@ -27,10 +27,10 @@ from gvas.base import NamedProcess
 class Program(NamedProcess):
 
     def __init__(self, env, *args, **kwargs):
-        self.cpus = kwargs.get('cpus', settings.defaults.program.cpus)
-        self.memory = kwargs.get('memory', settings.defaults.program.memory)
-        self.ports = kwargs.get('ports', [])
-        self.node = kwargs.get('node', None)
+        self.cpus = kwargs.pop('cpus', settings.defaults.program.cpus)
+        self.memory = kwargs.pop('memory', settings.defaults.program.memory)
+        self.ports = kwargs.pop('ports', [])
+        self.node = kwargs.pop('node', None)
         super(Program, self).__init__(env, *args, **kwargs)
 
     @classmethod

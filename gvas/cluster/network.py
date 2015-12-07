@@ -59,10 +59,10 @@ class Network(object):
         Removes available bandwidth thereby simulating additional traffic on
         the network medium.
         """
-        try:
-            self.medium.get(size)
-        except ValueError:
+        if self.medium.level < size:
             raise BandwidthExceeded()
+        self.medium.get(size)
+        print self, '\n'
 
     def recv(self, size):
         """
@@ -71,6 +71,7 @@ class Network(object):
         """
         try:
             self.medium.put(size)
+            print self, '\n'
         except ValueError:
             raise
 
@@ -93,9 +94,11 @@ class Network(object):
         return self.base_latency + delay
 
     def __str__(self):
-        return "Network: capacity={},  base_latency={}".format(
+        return "Network: capacity={},  bandwidth={}, base_latency={}, latency={}".format(
             self.capacity,
-            self.base_latency
+            self.bandwidth,
+            self.base_latency,
+            self.latency,
         )
 
     def __repr__(self):

@@ -27,6 +27,7 @@ from .base import Machine
 # Classes
 ##########################################################################
 
+
 class Node(Machine):
 
     def __init__(self, env, *args, **kwargs):
@@ -45,24 +46,36 @@ class Node(Machine):
         while True:
             yield cls(env, *args, **kwargs)
 
-    def send(self, address, size, value=None):
+    def send(self, address, port, size, value=None):
         """
-        Puts a message onto the containing Rack.
+        Puts a message onto the parent Rack.
         """
-        pass
+        self.env.process(self.rack.send(address=address, port=port, size=size, value=value))
 
-    def recv(self):
+    def recv(self, port, size, value=None):
         """
-        Obtains  a message from the containing Rack.
+        Obtains a message from the parent Rack.
         """
-        pass
+        program = None
+        for p in self.programs.itervalues():
+            if port in p.ports:
+                program = p
+
+        if program:
+            program.recv(value)
 
     def assign(self, program):
         """
         Ingests a new Program for processing.  If there aren't enough resources
         available then raises `NodeLacksCapacity`.
         """
-        # TODO: ensure we have capacity
+        if self.idle_cpus < program.cpus:
+            raise NodeLacksCapacity('{} cpus requested but only {} are free.'
+                                    .format(program.cpus, self.idle_cpus))
+
+        if self.idle_memory < program.memory:
+            raise NodeLacksCapacity('{}GB requested but only {}GB are free.'
+                                    .format(program.memory, self.idle_memory))
 
         self.programs[program.id] = program
         program.node = self
@@ -72,17 +85,14 @@ class Node(Machine):
         """
         Method to kickoff process simulation.
         """
-        # TODO: replace with actual code or returned Program process
-        while True:
-            yield self.env.timeout(1)
-            # print "Node {} checking in at {}".format(self.id, self.env.now)
+        yield self.env.timeout(1)
 
     @property
     def address(self):
         """
         Addressable identifier for this node containing the Rack and Node ID.
         """
-        pass
+        return self.id
 
     @property
     def id(self):
@@ -119,8 +129,6 @@ class Node(Machine):
 
     def __repr__(self):
         return "<{}>".format(self.__str__())
-
-
 
 
 ##########################################################################
