@@ -82,20 +82,33 @@ class Rack(Machine):
 
         # put on external network if needed
         if self != dest_rack:
-            self.env.process(dest_rack._send(address=address, port=port, size=size, value=value))
+            self.env.process(
+                dest_rack._send(
+                    address=address,
+                    port=port,
+                    size=size,
+                    value=value,
+                    outbound=True,
+                )
+            )
 
-    def _send(self, address, port, size, value=None):
+    def _send(self, address, port, size, value=None, outbound=False):
         """
         simpy process to simulate sending a message onto a bus and then triggering
         the recv after an appropriate latency period.
         """
-        print "Rack {}: sending message ({}) at {}\n".format(self.id, size, self.env.now)
+        print "Rack {}: sending message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
 
         # reserve bandwidth to put msg on the bus
         self.network.send(size)
 
+        # computed total latency
+        latency = self.network.latency
+        if outbound:
+            latency += self.egress_latency
+
         # yield for required latency
-        yield self.env.timeout(self.network.latency)
+        yield self.env.timeout(latency)
 
         # initiate recv to pick msg off the bus
         self.recv(address=address, port=port, size=size, value=value)
@@ -104,7 +117,7 @@ class Rack(Machine):
         """
         Generalized method to obtain a message from the contained network.
         """
-        print "Rack {}: recv message (size: {}, value: {}) at {}\n".format(self.id, size, value, self.env.now)
+        print "Rack {}: recv message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
 
         # determine destination rack
         rack_id, node_id = map(lambda x: int(x), address.split(':'))
