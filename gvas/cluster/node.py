@@ -27,6 +27,7 @@ from .base import Machine
 # Classes
 ##########################################################################
 
+
 class Node(Machine):
 
     def __init__(self, env, *args, **kwargs):
@@ -62,7 +63,13 @@ class Node(Machine):
         Ingests a new Program for processing.  If there aren't enough resources
         available then raises `NodeLacksCapacity`.
         """
-        # TODO: ensure we have capacity
+        if self.idle_cpus < program.cpus:
+            raise NodeLacksCapacity('{} cpus requested but only {} are free.'
+                                    .format(program.cpus, self.idle_cpus))
+
+        if self.idle_memory < program.memory:
+            raise NodeLacksCapacity('{}GB requested but only {}GB are free.'
+                                    .format(program.memory, self.idle_memory))
 
         self.programs[program.id] = program
         program.node = self
@@ -119,8 +126,6 @@ class Node(Machine):
 
     def __repr__(self):
         return "<{}>".format(self.__str__())
-
-
 
 
 ##########################################################################
