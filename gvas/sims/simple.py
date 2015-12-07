@@ -58,7 +58,7 @@ class SimpleSimulation(Simulation):
         cluster = gen.next()
 
         # create program generator
-        pgen = PingProgram.create(self.env)
+        pgen = PingProgram.create(self.env, cpus=1, memory=4, ports=[3333, 4444])
 
         # create nodes using cluster's node generator
         nodes = [cluster.add() for i in range(NODE_COUNT)]
