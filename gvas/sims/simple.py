@@ -2,7 +2,6 @@
 # A relatively simple simulation to exercise the cluster objects.
 #
 # TODO:
-#   - fix the loss of bandwidth when testing at higher node counts
 #   - add time series output
 #   - fix node address to be rack + node ids.
 #   - make so that messages can travel across racks with appropriate latency.
@@ -40,8 +39,8 @@ from gvas.dynamo import Uniform
 
 # NOTE: these will come from config once sim is stable
 
-CLUSTER_SIZE    = 1
-RACK_SIZE       = 1
+CLUSTER_SIZE    = 2
+RACK_SIZE       = 4
 NODE_COUNT      = 8
 START_COUNT     = 4     # number of programs to start with work phase
 NODE_CPUS       = 1
@@ -59,14 +58,18 @@ MAX_MSG_VALUE   = 50
 class SimpleSimulation(Simulation):
 
     def script(self):
+        rack_options = {
+            'size': RACK_SIZE
+        }
         node_options = {
             'cpus': NODE_CPUS,
             'memory': NODE_MEMORY
         }
         gen = Cluster.create(
             self.env,
-            size=RACK_SIZE,
-            node_options=node_options
+            size=CLUSTER_SIZE,
+            rack_options=rack_options,
+            node_options=node_options,
         )
         cluster = gen.next()
 
@@ -88,12 +91,6 @@ class SimpleSimulation(Simulation):
             p.work_queue.append(work_maker.next())
 
 
-"""
-Program needs something like a work queue (container) such that if it's working
-and then receives a message, it can queue the work for the message.
-
-Program should only wait if there are no messages/work in the queue
-"""
 class PingProgram(Program):
 
     def __init__(self, env, *args, **kwargs):

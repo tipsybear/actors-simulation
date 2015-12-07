@@ -68,6 +68,7 @@ class DefaultsConfiguration(SerializableConfiguration):
 
     class RackConfiguration(SerializableConfiguration):
         size = 96
+        egress_latency = 10
 
     class ProgramConfiguration(SerializableConfiguration):
         cpus = 1
