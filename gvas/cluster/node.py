@@ -85,10 +85,7 @@ class Node(Machine):
         """
         Method to kickoff process simulation.
         """
-        # TODO: replace with actual code or returned Program process
-        while True:
-            yield self.env.timeout(1)
-            # print "Node {} checking in at {}".format(self.id, self.env.now)
+        yield self.env.timeout(1)
 
     @property
     def address(self):

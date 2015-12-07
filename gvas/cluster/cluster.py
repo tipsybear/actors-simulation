@@ -86,7 +86,7 @@ class Cluster(Machine):
     def random(self, evaluator=lambda n: True):
         """
         Uses the evaluator function to test against the Node instances and
-        return the first match.
+        return a random match.
         """
         return random.choice(self.filter(evaluator))
 
@@ -129,7 +129,6 @@ class Cluster(Machine):
         """
         Method to kickoff process simulation.
         """
-        # TODO: placeholder code
         yield self.env.timeout(1)
 
     @property
@@ -144,6 +143,9 @@ class Cluster(Machine):
 
     @property
     def nodes(self):
+        """
+        Returns a generator to iterate through all of the nodes in the racks.
+        """
         for r in self.racks.itervalues():
             for n in r.nodes.itervalues():
                 yield n
@@ -151,7 +153,8 @@ class Cluster(Machine):
     @property
     def first_available_rack(self):
         """
-
+        Returns the first rack with room for a node or raises
+        ClusterLacksCapacity.
         """
         ids = sorted(self.racks.keys())
 
@@ -159,8 +162,7 @@ class Cluster(Machine):
             if not self.racks[id].full:
                 return self.racks[id]
 
-        else:
-            raise ClusterLacksCapacity()
+        raise ClusterLacksCapacity()
 
     def __str__(self):
         nodes = sum([len(r.nodes) for r in self.racks.itervalues()])

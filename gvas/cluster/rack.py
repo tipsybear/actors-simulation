@@ -109,8 +109,7 @@ class Rack(Machine):
         """
         Method to kickoff process simulation.
         """
-        # TODO: placeholder code
-        yield self.env.event()
+        yield self.env.timeout(1)
 
     @property
     def id(self):

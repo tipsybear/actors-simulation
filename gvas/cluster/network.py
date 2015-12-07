@@ -59,11 +59,10 @@ class Network(object):
         Removes available bandwidth thereby simulating additional traffic on
         the network medium.
         """
-        try:
-            self.medium.get(size)
-            print self, '\n'
-        except ValueError:
+        if self.medium.level < size:
             raise BandwidthExceeded()
+        self.medium.get(size)
+        print self, '\n'
 
     def recv(self, size):
         """

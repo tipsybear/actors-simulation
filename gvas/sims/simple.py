@@ -1,6 +1,13 @@
 # gvas.sims.simple
 # A relatively simple simulation to exercise the cluster objects.
 #
+# TODO:
+#   - fix node address to be rack + node ids.
+#   - make so that messages can travel across racks with appropriate latency.
+#   - programs should spin in the send method if rack throws BandwidthExceeded
+#     though its currently unclear if that would be caught. if not then
+#     program should manually check the available bandwidth and spin if needed.
+#
 # Author:   Allen Leis <allen.leis@gmail.com>
 # Created:  Sun Dec 06 12:49:03 2015 -0500
 #
@@ -29,15 +36,19 @@ from gvas.dynamo import Uniform
 # Simulation Configuration
 ##########################################################################
 
+# NOTE: these will come from config once sim is stable
+
 CLUSTER_SIZE    = 1
 RACK_SIZE       = 1
-NODE_COUNT      = 32
-START_COUNT     = 16     # number of programs to start with work phase
+NODE_COUNT      = 4
+START_COUNT     = 2     # number of programs to start with work phase
 NODE_CPUS       = 1
 NODE_MEMORY     = 4
 
 MIN_MSG_SIZE    = 10
 MAX_MSG_SIZE    = 50
+MIN_MSG_VALUE   = 10
+MAX_MSG_VALUE   = 50
 
 ##########################################################################
 # Classes
@@ -69,8 +80,10 @@ class SimpleSimulation(Simulation):
 
         # set some programs to start working instead of waiting
         starters = random.sample(nodes, START_COUNT)
+        work_maker = Uniform(10, 50, 'int')
         for n in starters:
-            n.programs[random.choice(n.programs.keys())].start_waiting = False
+            p = n.programs[n.programs.keys()[0]]
+            p.work_queue.append(work_maker.next())
 
 
 """
@@ -82,39 +95,41 @@ Program should only wait if there are no messages/work in the queue
 class PingProgram(Program):
 
     def __init__(self, env, *args, **kwargs):
-        self.randy = Uniform(10, 50, 'int')
-        self.message_sizer = Uniform(MIN_MSG_SIZE, MAX_MSG_SIZE, 'int')
+        self.work_queue = []
+        self.message_size_gen = Uniform(MIN_MSG_SIZE, MAX_MSG_SIZE, 'int')
+        self.message_value_gen = Uniform(MIN_MSG_VALUE, MAX_MSG_VALUE, 'int')
         self.msg_received = env.event()
-        self.start_waiting = kwargs.get('start_waiting', True)
+
         super(PingProgram, self).__init__(env, *args, **kwargs)
 
-    def recv(self, size):
-        print "Program {}: received a message of size {} at {}\n".format(self.id, size, self.env.now)
+    def recv(self, value):
+        print "Program {}: received a message with value {} at {}\n".format(self.id, value, self.env.now)
+        self.work_queue.append(value)
         self.msg_received.succeed()
+        self.msg_received = self.env.event()
 
     def wait(self):
         """
-        Waits until its event is triggered.
+        Wait until we get a new message
         """
-        try:
-            print "Program {}: waiting for recv at {}\n".format(self.id, self.env.now)
-            yield self.msg_received
-            self.msg_received = self.env.event()
-            print "Program {}: received message! {}\n".format(self.id, self.env.now)
-        except simpy.Interrupt as i:
-            print "Program {}: got interupted at {}\n".format(self.id, self.env.now)
+        print "Program {}: waiting for recv at {}\n".format(self.id, self.env.now)
+        yield self.msg_received
+        print "Program {}: received message! {}\n".format(self.id, self.env.now)
 
-    def work(self, duration=None):
+    def work(self):
         """
-        Simulates work by going to sleep for a bit.
+        Simulate work by going to sleep according to the oldest value in the
+        work queue.
         """
         print "Program {}: starting work at {}\n".format(self.id, self.env.now)
-        yield self.env.timeout(duration or self.randy.next()) | self.msg_received
+        yield self.env.timeout(self.work_queue.pop(0))
         print "Program {}: done working at {}\n".format(self.id, self.env.now)
 
     def send(self):
         """
-        Send a message to one or more nodes.
+        Send a message to another node with varying size and value.  The value
+        of the message will be used by the recipient computer as the amount of
+        time to "work".
         """
         print "Program {}: sending at {}\n".format(self.id, self.env.now)
         yield self.env.timeout(1)
@@ -123,7 +138,12 @@ class PingProgram(Program):
         recip = self.node.rack.cluster.random(
             lambda n: n.id != self.node.id and n.programs
         )
-        self.node.send(address=recip.address, port=3333, size=50, value=100)
+        self.node.send(
+            address=recip.address,
+            port=3333,
+            size=self.message_size_gen.next(),
+            value=self.message_value_gen.next()
+        )
 
         print "Program {}: done sending at {}\n".format(self.id, self.env.now)
 
@@ -137,11 +157,9 @@ class PingProgram(Program):
             - repeat
         """
         while True:
-            if self.start_waiting:
+            if not self.work_queue:
                 waiting = self.env.process(self.wait())
                 yield waiting
-            else:
-                self.start_waiting = True
 
             working = self.env.process(self.work())
             yield working
