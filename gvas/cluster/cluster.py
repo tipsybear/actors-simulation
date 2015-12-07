@@ -76,7 +76,10 @@ class Cluster(Machine):
         Uses the evaluator function to test against the Node instances and
         return the first match.
         """
-        pass
+        for n in self.nodes:
+            if evaluator(n):
+                return n
+        return None
 
     def send(self, *args, **kwargs):
         """
@@ -131,6 +134,12 @@ class Cluster(Machine):
         return self._id
 
     @property
+    def nodes(self):
+        for r in self.racks.itervalues():
+            for n in r.nodes.itervalues():
+                yield n
+
+    @property
     def first_available_rack(self):
         """
 
@@ -144,12 +153,16 @@ class Cluster(Machine):
         else:
             raise ClusterLacksCapacity()
 
+    def __str__(self):
+        nodes = sum([len(r.nodes) for r in self.racks.itervalues()])
+        return "Cluster: id: {}, racks={},  nodes={}".format(
+            self.id,
+            self.size,
+            nodes
+        )
 
-
-
-
-
-
+    def __repr__(self):
+        return "<{}>".format(self.__str__())
 
 ##########################################################################
 # Execution
