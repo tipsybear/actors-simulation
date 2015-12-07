@@ -3,8 +3,6 @@
 #
 # TODO:
 #   - add time series output
-#   - fix node address to be rack + node ids.
-#   - make so that messages can travel across racks with appropriate latency.
 #   - programs should spin in the send method if rack throws BandwidthExceeded
 #     though its currently unclear if that would be caught. if not then
 #     program should manually check the available bandwidth and spin if needed.
@@ -28,6 +26,7 @@ A relatively simple simulation to exercise the cluster objects.
 import simpy
 import random
 
+from gvas.config import settings
 from gvas.base import Process, NamedProcess
 from gvas.base import Simulation
 from gvas.cluster import *
@@ -37,19 +36,17 @@ from gvas.dynamo import Uniform
 # Simulation Configuration
 ##########################################################################
 
-# NOTE: these will come from config once sim is stable
+CLUSTER_SIZE    = settings.defaults.cluster.size
+RACK_SIZE       = settings.defaults.rack.size
+NODE_CPUS       = settings.defaults.node.cpus
+NODE_MEMORY     = settings.defaults.node.memory
 
-CLUSTER_SIZE    = 2
-RACK_SIZE       = 4
-NODE_COUNT      = 8
-START_COUNT     = 4     # number of programs to start with work phase
-NODE_CPUS       = 1
-NODE_MEMORY     = 4
-
-MIN_MSG_SIZE    = 10
-MAX_MSG_SIZE    = 50
-MIN_MSG_VALUE   = 10
-MAX_MSG_VALUE   = 50
+NODE_COUNT      = settings.simulations.simple.node_count
+START_COUNT     = settings.simulations.simple.start_team_size
+MIN_MSG_SIZE    = settings.simulations.simple.min_msg_size
+MAX_MSG_SIZE    = settings.simulations.simple.max_msg_size
+MIN_MSG_VALUE   = settings.simulations.simple.min_msg_value
+MAX_MSG_VALUE   = settings.simulations.simple.max_msg_value
 
 ##########################################################################
 # Classes

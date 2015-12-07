@@ -29,14 +29,15 @@ vizualization:
 random_seed:  42
 max_sim_time: 1000
 
+# generalized default values used across simulations
 defaults:
   network:
     capacity: 1000
     base_latency: 10
   cluster:
-    size: 4
+    size: 2
   rack:
-    size: 96
+    size: 4
     egress_latency: 20
   node:
     cpus: 4
@@ -44,3 +45,21 @@ defaults:
   program:
     cpus: 1
     memory: 4
+
+# simulation specific parameters
+simulations:
+
+  # a basic simulation to exercise the cluster objects
+  simple:
+
+    # the number of nodes to add to the cluster
+    node_count: 8
+
+    # the number of nodes that should start in a work phase
+    start_team_size: 4
+
+    # ranges for message size and values
+    min_msg_size: 10
+    max_msg_size: 50
+    min_msg_value: 10
+    max_msg_value: 50

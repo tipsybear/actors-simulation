@@ -65,6 +65,7 @@ class DefaultsConfiguration(SerializableConfiguration):
 
     class ClusterConfiguration(SerializableConfiguration):
         size = 2
+        node_count = 8
 
     class RackConfiguration(SerializableConfiguration):
         size = 96
@@ -79,6 +80,20 @@ class DefaultsConfiguration(SerializableConfiguration):
     rack = RackConfiguration()
     node = NodeConfiguration()
     program = ProgramConfiguration()
+
+
+class SimulationsConfiguration(SerializableConfiguration):
+
+    class SimpleSimulationConfiguration(SerializableConfiguration):
+        node_count = 8
+        start_team_size = 4
+
+        min_msg_size = 10
+        max_msg_size = 50
+        min_msg_value = 10
+        max_msg_value = 50
+
+    simple = SimpleSimulationConfiguration()
 
 
 class GVASSimulationConfiguration(Configuration):
@@ -101,6 +116,7 @@ class GVASSimulationConfiguration(Configuration):
     max_sim_time  = 1000
 
     defaults = DefaultsConfiguration()
+    simulations = SimulationsConfiguration()
 
 
 settings = GVASSimulationConfiguration.load()
