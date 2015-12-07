@@ -144,12 +144,16 @@ class Cluster(Machine):
         else:
             raise ClusterLacksCapacity()
 
+    def __str__(self):
+        nodes = sum([len(r.nodes) for r in self.racks.itervalues()])
+        return "Cluster: id: {}, racks={},  nodes={}".format(
+            self.id,
+            self.size,
+            nodes
+        )
 
-
-
-
-
-
+    def __repr__(self):
+        return "<{}>".format(self.__str__())
 
 ##########################################################################
 # Execution
