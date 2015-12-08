@@ -35,6 +35,7 @@ EPILOG      = "For any bugs or concerns, please use issues on Github"
 COMMANDS    = [
     ListCommand,
     RunCommand,
+    VizCommand,
 ]
 
 ##########################################################################

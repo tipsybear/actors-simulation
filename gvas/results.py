@@ -90,7 +90,13 @@ class Results(object):
         if hasattr(self, 'title'):
             return self.title
 
-        finished = self.timer.finished if isinstance(self.timer, Timer) else self.timer['finished']
         return '{} Simulation on {}'.format(
-            self.simulation, epochptime(finished).strftime(HUMAN_DATETIME)
+            self.simulation, self.get_finished().strftime(HUMAN_DATETIME)
         )
+
+    def get_finished(self):
+        """
+        Returns the finished datetime from the timer.
+        """
+        finished = self.timer.finished if isinstance(self.timer, Timer) else self.timer['finished']
+        return epochptime(finished)
