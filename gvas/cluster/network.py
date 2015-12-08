@@ -62,7 +62,7 @@ class Network(object):
         if self.medium.level < size:
             raise BandwidthExceeded()
         self.medium.get(size)
-        print self, '\n'
+        # print self, '\n'
 
     def recv(self, size):
         """
@@ -71,7 +71,7 @@ class Network(object):
         """
         try:
             self.medium.put(size)
-            print self, '\n'
+            # print self, '\n'
         except ValueError:
             raise
 

@@ -97,7 +97,7 @@ class Rack(Machine):
         simpy process to simulate sending a message onto a bus and then triggering
         the recv after an appropriate latency period.
         """
-        print "Rack {}: sending message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
+        # print "Rack {}: sending message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
 
         # reserve bandwidth to put msg on the bus
         self.network.send(size)
@@ -117,7 +117,7 @@ class Rack(Machine):
         """
         Generalized method to obtain a message from the contained network.
         """
-        print "Rack {}: recv message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
+        # print "Rack {}: recv message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
 
         # determine destination rack
         rack_id, node_id = map(lambda x: int(x), address.split(':'))
