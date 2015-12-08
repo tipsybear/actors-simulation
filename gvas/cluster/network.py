@@ -31,6 +31,7 @@ class Network(object):
 
     def __init__(self, env, parent=None, *args, **kwargs):
         self.parent = parent
+        self.message_count = 0
         self.capacity = kwargs.get(
             'capacity',
             settings.defaults.network.capacity
@@ -62,7 +63,7 @@ class Network(object):
         if self.medium.level < size:
             raise BandwidthExceeded()
         self.medium.get(size)
-        # print self, '\n'
+        self.message_count += 1
 
     def recv(self, size):
         """
@@ -71,7 +72,7 @@ class Network(object):
         """
         try:
             self.medium.put(size)
-            # print self, '\n'
+            self.message_count -= 1
         except ValueError:
             raise
 

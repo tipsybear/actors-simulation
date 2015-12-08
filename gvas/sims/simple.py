@@ -103,7 +103,7 @@ class SimpleSimulation(Simulation):
         """
         Returns total number of messages in-flight on all of the racks.
         """
-        return 0
+        return sum([r.network.message_count for r in self.cluster.racks.itervalues()])
 
     @property
     def _avg_bandwidth(self):
