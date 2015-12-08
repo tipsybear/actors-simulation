@@ -2,7 +2,6 @@
 # A relatively simple simulation to exercise the cluster objects.
 #
 # TODO:
-#   - add time series output
 #   - programs should spin in the send method if rack throws BandwidthExceeded
 #     though its currently unclear if that would be caught. if not then
 #     program should manually check the available bandwidth and spin if needed.
@@ -25,6 +24,7 @@ A relatively simple simulation to exercise the cluster objects.
 
 import simpy
 import random
+import sys
 
 from gvas.config import settings
 from gvas.base import Process, NamedProcess
@@ -54,6 +54,84 @@ MAX_MSG_VALUE   = settings.simulations.simple.max_msg_value
 
 class SimpleSimulation(Simulation):
 
+    def __init__(self, *args, **kwargs):
+        super(SimpleSimulation, self).__init__(*args, **kwargs)
+
+        self.cluster = None
+        self.record_proc = self.env.process(self.record())
+
+        self.diary.simulations = settings.simulations
+        self.diary.results = {
+            'message_count': [],
+            'message_size': [],
+            'avg_bandwidth': [],
+            'avg_used_bandwidth': [],
+            'avg_latency': [],
+        }
+
+    def complete(self):
+        """
+        Write the results to stdout.
+        """
+        self.diary.dump(sys.stdout)
+
+    def record(self):
+        """
+        Process method to record the state of the networks once per cycle.
+        """
+        while True:
+            self.diary.results['message_count'].append(self._message_count)
+            self.diary.results['message_size'].append(self._message_size)
+            self.diary.results['avg_bandwidth'].append(self._avg_bandwidth)
+            self.diary.results['avg_used_bandwidth'].append(self._avg_used_bandwidth)
+            self.diary.results['avg_latency'].append(self._avg_latency)
+            yield self.env.timeout(1)
+
+    @property
+    def _message_size(self):
+        """
+        Returns total size of message traffic on all of the racks.
+        """
+        size = 0
+        for r in self.cluster.racks.itervalues():
+            traffic = r.network.capacity - r.network.bandwidth
+            size += traffic
+        return size
+
+    @property
+    def _message_count(self):
+        """
+        Returns total number of messages in-flight on all of the racks.
+        """
+        return sum([r.network.message_count for r in self.cluster.racks.itervalues()])
+
+    @property
+    def _avg_bandwidth(self):
+        """
+        Returns average bandwidth of all the racks.
+        """
+        bandwidth = sum([r.network.bandwidth for r in self.cluster.racks.itervalues()])
+        return bandwidth / len(self.cluster.racks)
+
+    @property
+    def _avg_used_bandwidth(self):
+        """
+        Returns used bandwidth of all the racks.
+        """
+        bandwidth = sum([r.network.bandwidth for r in self.cluster.racks.itervalues()])
+        capacity = sum([r.network.capacity for r in self.cluster.racks.itervalues()])
+
+        congestion = capacity - bandwidth
+        return congestion / len(self.cluster.racks)
+
+    @property
+    def _avg_latency(self):
+        """
+        Returns average latency of all the racks.
+        """
+        latency = sum([r.network.latency for r in self.cluster.racks.itervalues()])
+        return latency / len(self.cluster.racks)
+
     def script(self):
         rack_options = {
             'size': RACK_SIZE
@@ -69,6 +147,7 @@ class SimpleSimulation(Simulation):
             node_options=node_options,
         )
         cluster = gen.next()
+        self.cluster = cluster
 
         # create program generator
         pgen = PingProgram.create(self.env, cpus=1, memory=4, ports=[3333, 4444])
@@ -99,7 +178,7 @@ class PingProgram(Program):
         super(PingProgram, self).__init__(env, *args, **kwargs)
 
     def recv(self, value):
-        print "Program {}: received a message with value {} at {}\n".format(self.id, value, self.env.now)
+        # print "Program {}: received a message with value {} at {}\n".format(self.id, value, self.env.now)
         self.work_queue.append(value)
         self.msg_received.succeed()
         self.msg_received = self.env.event()
@@ -108,18 +187,18 @@ class PingProgram(Program):
         """
         Wait until we get a new message
         """
-        print "Program {}: waiting for recv at {}\n".format(self.id, self.env.now)
+        # print "Program {}: waiting for recv at {}\n".format(self.id, self.env.now)
         yield self.msg_received
-        print "Program {}: received message! {}\n".format(self.id, self.env.now)
+        # print "Program {}: received message! {}\n".format(self.id, self.env.now)
 
     def work(self):
         """
         Simulate work by going to sleep according to the oldest value in the
         work queue.
         """
-        print "Program {}: starting work at {}\n".format(self.id, self.env.now)
+        # print "Program {}: starting work at {}\n".format(self.id, self.env.now)
         yield self.env.timeout(self.work_queue.pop(0))
-        print "Program {}: done working at {}\n".format(self.id, self.env.now)
+        # print "Program {}: done working at {}\n".format(self.id, self.env.now)
 
     def send(self):
         """
@@ -127,7 +206,7 @@ class PingProgram(Program):
         of the message will be used by the recipient computer as the amount of
         time to "work".
         """
-        print "Program {}: sending at {}\n".format(self.id, self.env.now)
+        # print "Program {}: sending at {}\n".format(self.id, self.env.now)
         yield self.env.timeout(1)
 
         # find other node and send the message
@@ -141,7 +220,7 @@ class PingProgram(Program):
             value=self.message_value_gen.next()
         )
 
-        print "Program {}: done sending at {}\n".format(self.id, self.env.now)
+        # print "Program {}: done sending at {}\n".format(self.id, self.env.now)
 
     def run(self):
         """
