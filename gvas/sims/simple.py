@@ -69,12 +69,6 @@ class SimpleSimulation(Simulation):
             'avg_latency': [],
         }
 
-    def complete(self):
-        """
-        Write the results to stdout.
-        """
-        self.diary.dump(sys.stdout)
-
     def record(self):
         """
         Process method to record the state of the networks once per cycle.

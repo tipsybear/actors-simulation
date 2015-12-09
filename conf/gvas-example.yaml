@@ -29,6 +29,10 @@ vizualization:
 random_seed:  42
 max_sim_time: 1000
 
+## Logging parameters
+logging:
+    level: INFO
+
 # generalized default values used across simulations
 defaults:
   network:
