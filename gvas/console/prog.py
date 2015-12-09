@@ -24,9 +24,9 @@ import colorama
 import argparse
 import traceback
 
-from gvas.exceptions import ConsoleError
-from gvas.version import get_version
 from gvas.config import settings
+from gvas.exceptions import ConsoleError
+
 
 ##########################################################################
 ## Helper functions
@@ -58,7 +58,7 @@ class ConsoleProgram(object):
 
     description = None
     epilog      = None
-    version     = get_version()
+    version     = None
 
     def __init__(self, **kwargs):
         self.version     = kwargs.get('version', self.__class__.version)
