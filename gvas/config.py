@@ -95,6 +95,26 @@ class SimulationsConfiguration(SerializableConfiguration):
 
     simple = SimpleSimulationConfiguration()
 
+##########################################################################
+## Logging Configuration
+##########################################################################
+
+class LoggingConfiguration(Configuration):
+    """
+    Very specific logging configuration instructions (does not provide the
+    complete configuration as available in the python logging module). See
+    the `gvas.utils.logger` module for more info.
+    """
+
+    level   = "INFO"
+    logfmt  = "%(msgid)5d %(message)s"
+    datefmt = "%Y-%m-%dT%H:%M:%S%z"
+    disable_existing_loggers = False
+
+
+##########################################################################
+## Application Configuration
+##########################################################################
 
 class GVASSimulationConfiguration(Configuration):
 
@@ -106,7 +126,7 @@ class GVASSimulationConfiguration(Configuration):
     ]
 
     debug         = False
-    testing       = True
+    testing       = False
 
     # Visualization parameters
     vizualization = VisualizationConfiguration()
@@ -115,9 +135,15 @@ class GVASSimulationConfiguration(Configuration):
     random_seed   = 42
     max_sim_time  = 1000
 
-    defaults = DefaultsConfiguration()
-    simulations = SimulationsConfiguration()
+    # Logging parameters
+    logging       = LoggingConfiguration()
 
+    defaults      = DefaultsConfiguration()
+    simulations   = SimulationsConfiguration()
+
+##########################################################################
+## Construct settings for use in the library.
+##########################################################################
 
 settings = GVASSimulationConfiguration.load()
 
