@@ -31,6 +31,15 @@ from confire import ImproperlyConfigured
 PROJECT  = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 ##########################################################################
+## Serializable Configuration -- for writing Config as Results
+##########################################################################
+
+class SerializableConfiguration(Configuration):
+
+    def serialize(self):
+        return dict(self.options())
+
+##########################################################################
 ## Nested Configurations
 ##########################################################################
 
@@ -44,23 +53,25 @@ class VisualizationConfiguration(Configuration):
 ## Application Configuration
 ##########################################################################
 
-class DefaultsConfiguration(Configuration):
+class DefaultsConfiguration(SerializableConfiguration):
 
-    class NetworkConfiguration(Configuration):
+    class NetworkConfiguration(SerializableConfiguration):
         capacity = 1000
         base_latency = 10
 
-    class NodeConfiguration(Configuration):
+    class NodeConfiguration(SerializableConfiguration):
         cpus = 4
         memory = 16
 
-    class ClusterConfiguration(Configuration):
+    class ClusterConfiguration(SerializableConfiguration):
         size = 2
+        node_count = 8
 
-    class RackConfiguration(Configuration):
+    class RackConfiguration(SerializableConfiguration):
         size = 96
+        egress_latency = 10
 
-    class ProgramConfiguration(Configuration):
+    class ProgramConfiguration(SerializableConfiguration):
         cpus = 1
         memory = 2
 
@@ -69,6 +80,20 @@ class DefaultsConfiguration(Configuration):
     rack = RackConfiguration()
     node = NodeConfiguration()
     program = ProgramConfiguration()
+
+
+class SimulationsConfiguration(SerializableConfiguration):
+
+    class SimpleSimulationConfiguration(SerializableConfiguration):
+        node_count = 8
+        start_team_size = 4
+
+        min_msg_size = 10
+        max_msg_size = 50
+        min_msg_value = 10
+        max_msg_value = 50
+
+    simple = SimpleSimulationConfiguration()
 
 
 class GVASSimulationConfiguration(Configuration):
@@ -91,6 +116,7 @@ class GVASSimulationConfiguration(Configuration):
     max_sim_time  = 1000
 
     defaults = DefaultsConfiguration()
+    simulations = SimulationsConfiguration()
 
 
 settings = GVASSimulationConfiguration.load()

@@ -31,6 +31,7 @@ class Network(object):
 
     def __init__(self, env, parent=None, *args, **kwargs):
         self.parent = parent
+        self.message_count = 0
         self.capacity = kwargs.get(
             'capacity',
             settings.defaults.network.capacity
@@ -59,10 +60,10 @@ class Network(object):
         Removes available bandwidth thereby simulating additional traffic on
         the network medium.
         """
-        try:
-            self.medium.get(size)
-        except ValueError:
+        if self.medium.level < size:
             raise BandwidthExceeded()
+        self.medium.get(size)
+        self.message_count += 1
 
     def recv(self, size):
         """
@@ -71,6 +72,7 @@ class Network(object):
         """
         try:
             self.medium.put(size)
+            self.message_count -= 1
         except ValueError:
             raise
 
@@ -93,9 +95,11 @@ class Network(object):
         return self.base_latency + delay
 
     def __str__(self):
-        return "Network: capacity={},  base_latency={}".format(
+        return "Network: capacity={},  bandwidth={}, base_latency={}, latency={}".format(
             self.capacity,
-            self.base_latency
+            self.bandwidth,
+            self.base_latency,
+            self.latency,
         )
 
     def __repr__(self):

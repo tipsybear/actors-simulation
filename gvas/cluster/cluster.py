@@ -17,6 +17,8 @@ Simulation class to model a cluster of resources.
 # Imports
 ##########################################################################
 
+import random
+
 from gvas.config import settings
 from gvas.exceptions import ClusterLacksCapacity
 from .base import Machine
@@ -69,14 +71,24 @@ class Cluster(Machine):
         Uses the evaluator function to test against the Node instances and
         return a list of matches.
         """
-        pass
+        return filter(evaluator, self.nodes)
 
     def first(self, evaluator):
         """
         Uses the evaluator function to test against the Node instances and
         return the first match.
         """
-        pass
+        for n in self.nodes:
+            if evaluator(n):
+                return n
+        return None
+
+    def random(self, evaluator=lambda n: True):
+        """
+        Uses the evaluator function to test against the Node instances and
+        return a random match.
+        """
+        return random.choice(self.filter(evaluator))
 
     def send(self, *args, **kwargs):
         """
@@ -117,7 +129,6 @@ class Cluster(Machine):
         """
         Method to kickoff process simulation.
         """
-        # TODO: placeholder code
         yield self.env.timeout(1)
 
     @property
@@ -131,9 +142,19 @@ class Cluster(Machine):
         return self._id
 
     @property
+    def nodes(self):
+        """
+        Returns a generator to iterate through all of the nodes in the racks.
+        """
+        for r in self.racks.itervalues():
+            for n in r.nodes.itervalues():
+                yield n
+
+    @property
     def first_available_rack(self):
         """
-
+        Returns the first rack with room for a node or raises
+        ClusterLacksCapacity.
         """
         ids = sorted(self.racks.keys())
 
@@ -141,15 +162,18 @@ class Cluster(Machine):
             if not self.racks[id].full:
                 return self.racks[id]
 
-        else:
-            raise ClusterLacksCapacity()
+        raise ClusterLacksCapacity()
 
+    def __str__(self):
+        nodes = sum([len(r.nodes) for r in self.racks.itervalues()])
+        return "Cluster: id: {}, racks={},  nodes={}".format(
+            self.id,
+            self.size,
+            nodes
+        )
 
-
-
-
-
-
+    def __repr__(self):
+        return "<{}>".format(self.__str__())
 
 ##########################################################################
 # Execution

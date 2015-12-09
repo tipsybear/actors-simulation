@@ -17,7 +17,7 @@ Utilities and helper functions common to the GVAS simulation.
 ## Imports
 ##########################################################################
 
-from .encoding import encode, decode
+
 
 ##########################################################################
 ## Helper Functions

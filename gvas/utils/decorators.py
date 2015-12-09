@@ -20,7 +20,6 @@ Decorators and other functional utilities
 import time
 
 from functools import wraps
-from gvas.utils import decode
 from gvas.utils.timez import humanizedelta
 
 ##########################################################################
@@ -55,7 +54,7 @@ class Timer(object):
 
         >>> with Timer() as timer:
         ...     do_something()
-        >>> print timer.interval
+        >>> print timer.elapsed
     """
 
     def __init__(self, wall_clock=True):
@@ -67,19 +66,29 @@ class Timer(object):
         self.wall_clock = wall_clock
         self.time = time.time if wall_clock else time.clock
 
+        # Stubs for serializing an empty timer.
+        self.started  = None
+        self.finished = None
+        self.elapsed  = 0.0
+
     def __enter__(self):
-        self.start    = self.time()
+        self.started  = self.time()
         return self
 
     def __exit__(self, type, value, tb):
-        self.finish   = self.time()
-        self.interval = self.finish - self.start
+        self.finished = self.time()
+        self.elapsed  = self.finished - self.started
 
     def __str__(self):
-        return humanizedelta(seconds=self.interval)
+        return humanizedelta(seconds=self.elapsed)
 
-    def __unicode__(self):
-        return decode(str(self))
+    def serialize(self):
+        return {
+            'started':  self.started,
+            'finished': self.finished,
+            'elapsed':  humanizedelta(seconds=self.elapsed),
+        }
+
 
 def timeit(func, wall_clock=True):
     """

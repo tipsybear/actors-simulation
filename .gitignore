@@ -61,3 +61,4 @@ target/
 conf/gvas.yaml
 docs/slate
 .ipynb_checkpoints
+fixtures/*

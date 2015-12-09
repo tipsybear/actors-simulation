@@ -20,3 +20,4 @@ A module containing all the GVAS commands
 ## Make sure all commands in this directory are imported!
 from .list import ListCommand
 from .run import RunCommand
+from .viz import VizCommand

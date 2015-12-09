@@ -22,6 +22,7 @@ import random
 
 from gvas.config import settings
 from gvas.dynamo import Sequence
+from gvas.results import Results
 
 ##########################################################################
 ## Base Process Objects
@@ -74,6 +75,7 @@ class Simulation(object):
 
         self.max_sim_time = kwargs.get('max_sim_time', settings.max_sim_time)
         self.env = simpy.Environment()
+        self.diary = Results()
 
     def script(self):
         """
@@ -81,9 +83,17 @@ class Simulation(object):
         """
         raise NotImplementedError("Every simulation requires a script.")
 
+    def complete(self):
+        """
+        Override for a final report or cleanup at the end of the run.
+        """
+        pass
+
     def run(self):
         """
         The entry point for all simulations.
         """
         self.script()
-        self.env.run(until=self.max_sim_time)
+        with self.diary.timer:
+            self.env.run(until=self.max_sim_time)
+        self.complete()

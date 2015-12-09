@@ -24,6 +24,7 @@ systems that need to implement GVAS.
 import colorama
 
 from gvas.console.commands import *
+from gvas.version import get_version
 from gvas.console.prog import ConsoleProgram
 
 ##########################################################################
@@ -35,6 +36,7 @@ EPILOG      = "For any bugs or concerns, please use issues on Github"
 COMMANDS    = [
     ListCommand,
     RunCommand,
+    VizCommand,
 ]
 
 ##########################################################################
@@ -45,6 +47,7 @@ class GVASUtility(ConsoleProgram):
 
     description = colorama.Fore.CYAN + DESCRIPTION + colorama.Fore.RESET
     epilog      = colorama.Fore.MAGENTA + EPILOG + colorama.Fore.RESET
+    version     = "GVAS {}".format(get_version())
 
     @classmethod
     def load(klass, commands=COMMANDS):
