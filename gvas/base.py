@@ -78,7 +78,16 @@ class Simulation(LoggingMixin):
 
         self.max_sim_time = kwargs.get('max_sim_time', settings.max_sim_time)
         self.env = simpy.Environment()
-        self.diary = Results()
+
+    @property
+    def diary(self):
+        """
+        Allen has chosen to name the simulation results the diary, this property
+        attempts to auto-configure the results object before being loaded.
+        """
+        if not hasattr(self, '_diary'):
+            self._diary = Results(simulation=self.__class__.__name__)
+        return self._diary
 
     def script(self):
         """
