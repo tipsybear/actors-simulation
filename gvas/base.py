@@ -20,9 +20,12 @@ The base API for simulation processes and scripts.
 import simpy
 import random
 
+from datetime import datetime
 from gvas.config import settings
 from gvas.dynamo import Sequence
 from gvas.results import Results
+from gvas.utils.logger import LoggingMixin
+from gvas.utils.timez import HUMAN_DATETIME
 
 ##########################################################################
 ## Base Process Objects
@@ -62,7 +65,7 @@ class NamedProcess(Process):
 ## Base Simulation Script
 ##########################################################################
 
-class Simulation(object):
+class Simulation(LoggingMixin):
     """
     Defines a script that every simulation implements.
     """
@@ -83,17 +86,43 @@ class Simulation(object):
         """
         raise NotImplementedError("Every simulation requires a script.")
 
+    def setup(self):
+        """
+        Override to do any work before the simulation runs like logging or
+        cleaning up output files. Call super to ensure logging works.
+        """
+        message = (
+            "{} Simulation started at {}"
+            .format(self.__class__.__name__, datetime.now().strftime(HUMAN_DATETIME))
+        )
+
+        self.logger.info(message)
+
     def complete(self):
         """
         Override for a final report or cleanup at the end of the run.
+        Call super to ensure logging works correctly
         """
-        pass
+        message = (
+            "{} Simulation finshed at {} ({})"
+            .format(self.__class__.__name__, datetime.now().strftime(HUMAN_DATETIME), self.diary.timer)
+        )
+
+        self.logger.info(message)
 
     def run(self):
         """
         The entry point for all simulations.
         """
-        self.script()
+        # Call setup and initialization function
+        self.setup()
+
+        # Time the entire simulation run process.
         with self.diary.timer:
+
+            # Set up the simulation environment and run
+            self.script()
             self.env.run(until=self.max_sim_time)
+
+        # Call clean and completion functions
         self.complete()
