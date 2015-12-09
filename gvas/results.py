@@ -27,6 +27,8 @@ from gvas.utils.decorators import Timer
 from gvas.utils.timez import HUMAN_DATETIME
 from gvas.utils.timez import epochptime
 
+from collections import defaultdict
+
 ##########################################################################
 ## Results Object
 ##########################################################################
@@ -46,7 +48,7 @@ class Results(object):
 
     def __init__(self, **kwargs):
         # Set reasonable defaults for results
-        self.results    = {}
+        self.results    = defaultdict(list)
         self.timer      = Timer()
         self.simulation = None
         self.version    = gvas.get_version()
@@ -57,6 +59,12 @@ class Results(object):
         # Set any properties that need to be serialized (override above)
         for key, val in kwargs.iteritems():
             setattr(self, key, val)
+
+    def update(self, key, value):
+        """
+        Updates the results by appending the value to the appropriate key.
+        """
+        self.results[key].append(value)
 
     def dump(self, fp, **kwargs):
         """

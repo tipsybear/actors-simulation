@@ -60,7 +60,7 @@ class SimpleSimulation(Simulation):
         self.cluster = None
         self.record_proc = self.env.process(self.record())
 
-        self.diary.simulations = settings.simulations
+        self.diary.configuration = settings.simulations.simple
         self.diary.results = {
             'message_count': [],
             'message_size': [],
@@ -69,22 +69,16 @@ class SimpleSimulation(Simulation):
             'avg_latency': [],
         }
 
-    def complete(self):
-        """
-        Write the results to stdout.
-        """
-        self.diary.dump(sys.stdout)
-
     def record(self):
         """
         Process method to record the state of the networks once per cycle.
         """
         while True:
-            self.diary.results['message_count'].append(self._message_count)
-            self.diary.results['message_size'].append(self._message_size)
-            self.diary.results['avg_bandwidth'].append(self._avg_bandwidth)
-            self.diary.results['avg_used_bandwidth'].append(self._avg_used_bandwidth)
-            self.diary.results['avg_latency'].append(self._avg_latency)
+            self.diary.update('message_count', self._message_count)
+            self.diary.update('message_size', self._message_size)
+            self.diary.update('avg_bandwidth', self._avg_bandwidth)
+            self.diary.update('avg_used_bandwidth', self._avg_used_bandwidth)
+            self.diary.update('avg_latency', self._avg_latency)
             yield self.env.timeout(1)
 
     @property
