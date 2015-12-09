@@ -22,9 +22,13 @@ import simpy
 from gvas.config import settings
 from gvas.exceptions import BandwidthExceeded
 
+from collections import namedtuple
+
 ##########################################################################
 # Classes
 ##########################################################################
+
+Message = namedtuple('Message', 'src, dst, value, size')
 
 
 class Network(object):

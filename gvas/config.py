@@ -75,11 +75,16 @@ class DefaultsConfiguration(SerializableConfiguration):
         cpus = 1
         memory = 2
 
+    class ActorsConfiguration(SerializableConfiguration):
+
+        persistence_cost = 2
+
     network = NetworkConfiguration()
     cluster = ClusterConfiguration()
     rack = RackConfiguration()
     node = NodeConfiguration()
     program = ProgramConfiguration()
+    actors = ActorsConfiguration()
 
 
 class SimulationsConfiguration(SerializableConfiguration):

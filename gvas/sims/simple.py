@@ -59,15 +59,7 @@ class SimpleSimulation(Simulation):
 
         self.cluster = None
         self.record_proc = self.env.process(self.record())
-
         self.diary.configuration = settings.simulations.simple
-        self.diary.results = {
-            'message_count': [],
-            'message_size': [],
-            'avg_bandwidth': [],
-            'avg_used_bandwidth': [],
-            'avg_latency': [],
-        }
 
     def record(self):
         """
