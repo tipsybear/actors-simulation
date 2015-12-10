@@ -17,11 +17,12 @@ Simulation class to model a compute node.
 # Imports
 ##########################################################################
 
-import simpy
+from .base import Machine
+from .network import Address, Message
 
 from gvas.config import settings
 from gvas.exceptions import NodeLacksCapacity
-from .base import Machine
+from gvas.exceptions import UndeliverableMessage
 
 ##########################################################################
 # Classes
@@ -37,32 +38,36 @@ class Node(Machine):
         self.programs = {}
         super(self.__class__, self).__init__(env, *args, **kwargs)
 
-    @classmethod
-    def create(cls, env, *args, **kwargs):
-        """
-        Generalized factory method to return a generator that can produce
-        new instances.
-        """
-        while True:
-            yield cls(env, *args, **kwargs)
-
-    def send(self, address, port, size, value=None):
+    def send(self, message=None, **kwargs):
         """
         Puts a message onto the parent Rack.
-        """
-        self.rack.send(address=address, port=port, size=size, value=value)
 
-    def recv(self, port, size, value=None):
+        Interface takes either:
+            1. a message object
+            2. a destination address, value and size
+        """
+        if message is None:
+            kwargs['src'] = self.address
+            message = Message(**kwargs)
+
+        self.rack.send(message)
+
+    def recv(self, message):
         """
         Obtains a message from the parent Rack.
         """
-        program = None
-        for p in self.programs.itervalues():
-            if port in p.ports:
-                program = p
+        delivered = False
 
-        if program:
-            program.recv(value)
+        for program in self.programs.itervalues():
+            if message.dst.port in program.ports:
+                program.recv(message)
+                delivered = True
+
+        if not delivered:
+            raise UndeliverableMessage(
+                "A message was unable to be delivered to {}"
+                .format(self.address)
+            )
 
     def assign(self, program):
         """
@@ -91,10 +96,7 @@ class Node(Machine):
         """
         Addressable identifier for this node containing the Rack and Node ID.
         """
-        return "{}:{}".format(
-            self.rack.id,
-            self.id
-        )
+        return Address(self.rack.id, self.id, None, None)
 
     @property
     def id(self):
@@ -138,6 +140,7 @@ class Node(Machine):
 ##########################################################################
 
 if __name__ == '__main__':
+    import simpy
     env = simpy.Environment()
 
     factory = Node.create(env, cpus=4, memory=16)

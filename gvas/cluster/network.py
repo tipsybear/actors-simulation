@@ -29,6 +29,7 @@ from collections import namedtuple
 ##########################################################################
 
 Message = namedtuple('Message', 'src, dst, value, size')
+Address = namedtuple('Address', 'rack, node, port, pid')
 
 
 class Network(object):

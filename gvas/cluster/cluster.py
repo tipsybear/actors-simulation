@@ -55,16 +55,7 @@ class Cluster(Machine):
 
         racks = [self.rack_generator.next() for i in range(self.size)]
         self.racks = dict((r.id, r) for r in racks)
-        super(self.__class__, self).__init__(env, *args, **kwargs)
-
-    @classmethod
-    def create(cls, env, *args, **kwargs):
-        """
-        Generalized factory method to return a generator that can produce
-        new instances.
-        """
-        while True:
-            yield cls(env, *args, **kwargs)
+        super(self.__class__, self).__init__(env, *args, **kwargs)        
 
     def filter(self, evaluator):
         """

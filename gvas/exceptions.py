@@ -23,17 +23,20 @@ class GVASException(Exception):
     """
     pass
 
+
 class UnknownType(GVASException):
     """
     An unknown type was passed causing a TypeError of some kind.
     """
     pass
 
+
 class UnknownSimulation(GVASException):
     """
     The name of an unknown simulation was passed.
     """
     pass
+
 
 ##########################################################################
 ## Console Exceptions
@@ -64,12 +67,14 @@ class ClusterLacksCapacity(ClusterResourceException):
     """
     pass
 
+
 class NodeLacksCapacity(ClusterResourceException):
     """
     An error condition wherein a Node cannot accept a Program due to the
     lack of available resources (cpu, memory, etc.).
     """
     pass
+
 
 class RackLacksCapacity(ClusterResourceException):
     """
@@ -78,8 +83,25 @@ class RackLacksCapacity(ClusterResourceException):
     """
     pass
 
-class BandwidthExceeded(ClusterResourceException):
+
+##########################################################################
+## Network Exceptions
+##########################################################################
+
+class NetworkException(ClusterResourceException):
+    """
+    Handling exceptions that occur when trying to send messages.
+    """
+    pass
+
+class BandwidthExceeded(NetworkException):
     """
     A `Network` resource has exceeded its capacity.
+    """
+    pass
+
+class UndeliverableMessage(NetworkException):
+    """
+    A message has arrived at a node that cannot be delivered. 
     """
     pass
