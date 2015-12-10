@@ -43,8 +43,9 @@ defaults:
         base_latency: 10
     cluster:
         size: 2
+        node_count: 64
     rack:
-        size: 4
+        size: 32
         egress_latency: 20
     node:
         cpus: 4
@@ -56,17 +57,23 @@ defaults:
 # simulation specific parameters
 simulations:
 
-  # a basic simulation to exercise the cluster objects
-  simple:
+    # a basic simulation to exercise the cluster objects
+    simple:
 
-    # the number of nodes to add to the cluster
-    node_count: 8
+        # the number of nodes to add to the cluster
+        node_count: 8
 
-    # the number of nodes that should start in a work phase
-    start_team_size: 4
+        # the number of nodes that should start in a work phase
+        start_team_size: 4
 
-    # ranges for message size and values
-    min_msg_size: 10
-    max_msg_size: 50
-    min_msg_value: 10
-    max_msg_value: 50
+        # ranges for message size and values
+        min_msg_size: 10
+        max_msg_size: 50
+        min_msg_value: 10
+        max_msg_value: 50
+
+    # a load balancing simulation using the actor communication model
+    balance:
+
+        # hueristic for when to add new nodes
+        volume_threshold: 100

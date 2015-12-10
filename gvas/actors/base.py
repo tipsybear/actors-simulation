@@ -25,7 +25,7 @@ from gvas.config import settings
 ##########################################################################
 
 SEND_LATENCY     = 1
-PERSISTENCE_COST = settings.defaults.actors.peristence_cost
+PERSISTENCE_COST = settings.defaults.actors.persistence_cost
 
 ##########################################################################
 ## Actor Program
@@ -39,14 +39,14 @@ class ActorProgram(Program):
     """
 
     def __init__(self, env, *args, **kwargs):
-        # The manager is the GVAS actor service
-        self.manager = kwargs['manager']
+        # The manager is the GVAS actor service and is required.
+        self.manager    = kwargs['manager']
 
-        self.active  = False  # Active or inactive state
-        self.persist = False  # Require a persist on the next go around
-        self.message = None   # Message channel to listen for messages
-        self.hydrate = None   # Activation channel to listen for activations
-        self.outbox  = []     # Handle puts messages on the outbox to send
+        self.active     = False  # Active or inactive state
+        self.checkpoint = False  # Require a persist on the next go around
+        self.message    = None   # Message channel to listen for messages
+        self.hydrate    = None   # Activation channel to listen for activations
+        self.outbox     = []     # Handle puts messages on the outbox to send
 
         super(ActorProgram, self).__init__(env, *args, **kwargs)
 
@@ -130,5 +130,5 @@ class ActorProgram(Program):
                     yield self.env.process(self.send(msg))
 
                 # If we must persist then do so
-                if self.persist:
+                if self.checkpoint:
                     yield self.env.process(self.persist())

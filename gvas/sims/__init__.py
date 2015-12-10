@@ -21,6 +21,7 @@ from collections import namedtuple
 
 from .cars import GasStationSimulation
 from .simple import SimpleSimulation
+from .balance import BalanceSimulation
 
 ##########################################################################
 ## Classes
@@ -43,4 +44,9 @@ registry = {
         'A straightforward simulation to test the Cluster framework.',
         SimpleSimulation
     ),
+    'balance': Simulation(
+        'balance',
+        'A load balancing simulation with the actor model.',
+        BalanceSimulation
+    )
 }
