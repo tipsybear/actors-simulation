@@ -32,9 +32,8 @@ class ActorManager(Process, LoggingMixin):
     """
 
     def __init__(self, env, cluster):
-        # The actor manager is a master process on the cluster
-        self.cluster = cluster
-        self.queue   = deque()
+        self.cluster = cluster # The actor manager is a master process on the cluster
+        self.queue   = deque() # The message queue if there are no available actors
         super(ActorManager, self).__init__(env)
 
     def run(self):
@@ -46,10 +45,22 @@ class ActorManager(Process, LoggingMixin):
             queue = list(self.queue)
             self.queue.clear()
 
+            # Availability
+            self.available = self.get_available_actors()
+
             for msg in queue:
                 self.route(msg)
 
             yield self.env.timeout(1)
+
+    def lookup(self, address):
+        """
+        Lookup an actor by address. Returns None if it cannot find an actor
+        at the specified address.
+        """
+        rack = self.cluster.racks.get(address.rack, {})
+        node = rack.nodes.get(address.node, {})
+        return node.programs.get(address.pid, None)
 
     def actors(self):
         """
@@ -65,20 +76,22 @@ class ActorManager(Process, LoggingMixin):
         """
         return filter(evaluator, self.actors())
 
-    def get_available_actor(self):
+    def get_available_actors(self):
         """
         Select the next available actor in the cluster
         """
+        # Phase one: look for an active and ready actor
         for actor in self.filter(lambda a: a.active and a.ready):
-            return actor
+            yield actor
 
-        # Otherwise we need to rehydrate an actor
+        # Otherwise we need to activate an actor
         for actor in self.filter(lambda a: not a.active):
-            return actor
+            yield actor
 
-        return None
+        # No actors are available at all!
+        yield None
 
-    def route(self, msg):
+    def route(self, message):
         """
         Basic actor manager route method. If the message has a destination
         address, then the manager attempts to send the message to the node.
@@ -87,34 +100,30 @@ class ActorManager(Process, LoggingMixin):
         """
 
         # Find an available actor
-        if msg.dst is None:
-            actor = self.get_available_actor()
+        if message.dst is None:
+            actor = self.available.next()
             if actor is not None:
-                msg = msg._replace(dst="{}:{}".format(actor.node.address, actor.ports[0]))
+                message = message._replace(dst=actor.address)
 
         # attempt to send the message
-        if msg.dst is not None:
-            drack, dnode, dport = map(int, msg.dst.split(":"))
-            actor = self.cluster.racks[drack].nodes[dnode].programs[dport]
+        if message.dst is not None:
+            actor = self.lookup(message.dst)
+            if actor is None: raise Exception(message.dst)
             if actor.active and actor.ready:
                 # send the message!
-                addr = "{}:{}".format(drack, dnode)
-
-                if msg.src is not None:
-                    srack, snode, sport = map(int, msg.dst.split(":"))
-                    self.cluster.racks[srack].nodes[snode].send(
-                        addr, dport, msg.size, msg.value
-                    )
+                if message.src is not None:
+                    source = self.cluster.racks[message.src.rack]
+                    source = source.nodes[message.src.node]
                 else:
-                    self.cluster.racks[drack].send(
-                        addr, dport, msg.size, msg.value
-                    )
+                    source = self.cluster.racks[message.dst.rack]
 
-                # Job done, lets bail!
-                return
-            else:
-                # reinsantiate the actor
+                # Mark actor as queued and send the message
+                actor.ready = False
+                return source.send(message)
+
+            if not actor.active:
+                # activate the actor!
                 actor.activate()
 
         # We could do nothing, so queue the message
-        self.queue.append(msg)
+        self.queue.append(message)

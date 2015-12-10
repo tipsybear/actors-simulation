@@ -53,6 +53,7 @@ class StreamingData(Process):
         self.service = service
         self.stream  = Stream(MESSAGE_MEAN, MESSAGE_STDDEV, SPIKE_SCALE, SPIKE_PROBABILTY, SPIKE_DURATION)
         self.values  = Normal(64, 32)
+        self.last_volume = 0
         super(StreamingData, self).__init__(env)
 
     def run(self):
@@ -69,6 +70,7 @@ class StreamingData(Process):
                 for idx in xrange(volume):
                     self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE))
 
+            self.last_volume = volume
             yield self.env.timeout(1)
 
 
@@ -106,6 +108,8 @@ class BalanceSimulation(Simulation):
         """
         while True:
             self.diary.update('utilization', self.utilization)
+            self.diary.update('backlog', self.backlog)
+            self.diary.update('incoming', self.stream.last_volume)
             yield self.env.timeout(1)
 
     @property
@@ -120,7 +124,15 @@ class BalanceSimulation(Simulation):
             nodes  += node.cpus
             active += sum(1 for program in node.programs.itervalues() if program.active)
 
-        return float(active) / float(nodes)
+        return active
+        # return float(active) / float(nodes)
+
+    @property
+    def backlog(self):
+        """
+        Returns the number of messages that are backlogged in the queue.
+        """
+        return len(self.manager.queue)
 
     def script(self):
         """
@@ -132,5 +144,5 @@ class BalanceSimulation(Simulation):
         # Create actor programs for every node in the cluster.
         for node in self.cluster.nodes:
             for idx in xrange(node.cpus):
-                program = BalanceActor(self.env, self.manager, ports=[idx], node=node)
-                node.programs[idx] = program
+                program = BalanceActor(self.env, self.manager, ports=[idx+10, idx+20])
+                node.assign(program)

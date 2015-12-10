@@ -104,9 +104,9 @@ class SimulationsConfiguration(SerializableConfiguration):
         message_size     = 128
         spike_prob       = 0.25
         spike_duration   = 15
-        spike_scale      = 10
-        message_mean     = 100
-        message_stddev   = 24
+        spike_scale      = 5
+        message_mean     = 16
+        message_stddev   = 8
 
     simple = SimpleSimulationConfiguration()
     balance = BalanceSimulationConfiguration()
@@ -123,7 +123,7 @@ class LoggingConfiguration(Configuration):
     """
 
     level   = "INFO"
-    logfmt  = "%(msgid)5d %(message)s"
+    logfmt  = "[%(time)5d] %(message)s"
     datefmt = "%Y-%m-%dT%H:%M:%S%z"
     disable_existing_loggers = False
 

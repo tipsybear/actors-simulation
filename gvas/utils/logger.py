@@ -155,7 +155,8 @@ class SimulationLogger(WrappedLogger):
     counter = Sequence()
     logger  = logging.getLogger('gvas')
 
-    def __init__(self, **kwargs):
+    def __init__(self, env, **kwargs):
+        self.env   = env
         self._user = kwargs.pop('user', None)
         super(SimulationLogger, self).__init__(**kwargs)
 
@@ -173,6 +174,7 @@ class SimulationLogger(WrappedLogger):
         extra.update({
             'user':  self.user,
             'msgid': self.counter.next(),
+            'time':  self.env.now,
         })
 
         kwargs['extra'] = extra
@@ -194,7 +196,7 @@ class LoggingMixin(object):
         Instantiates and returns a SmoakLogger instance
         """
         if not hasattr(self, '_logger') or not self._logger:
-            self._logger = SimulationLogger()
+            self._logger = SimulationLogger(self.env)
         return self._logger
 
 if __name__ == '__main__':

@@ -58,7 +58,7 @@ class Program(NamedProcess):
         """
         Returns the address for this program, specializing to the first port.
         """
-        return self.node.address._replace(port=self.ports[0], pid=self.id)
+        return self.node.address._replace(port=next(iter(self.ports)), pid=self.id)
 
     def __str__(self):
         return "Program: id: {}, cpus={},  memory={}".format(

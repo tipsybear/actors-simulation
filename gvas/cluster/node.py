@@ -58,10 +58,19 @@ class Node(Machine):
         """
         delivered = False
 
-        for program in self.programs.itervalues():
-            if message.dst.port in program.ports:
+        if message.dst.pid is not None:
+            # Deliver message by process id.
+            program = self.programs.get(message.dst.pid, None)
+            if program is not None:
                 program.recv(message)
                 delivered = True
+
+        else:
+            # Attempt to deliver by port number
+            for program in self.programs.itervalues():
+                if message.dst.port in program.ports:
+                    program.recv(message)
+                    delivered = True
 
         if not delivered:
             raise UndeliverableMessage(
