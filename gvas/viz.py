@@ -56,6 +56,14 @@ def plot_kde(series, **kwargs):
     return sns.distplot(np.array(series), **kwargs)
 
 
+def plot_time(series, **kwargs):
+    """
+    Helper function to plot a simple time series on an axis.
+    """
+    kwargs = configure(**kwargs)
+    return sns.tsplot(np.array(series), **kwargs)
+
+
 def plot_results(results, **kwargs):
     """
     Sort of a circular plot function so that we can store all vizualization
