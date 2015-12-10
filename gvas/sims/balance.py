@@ -18,10 +18,64 @@ A load balancing simulation with the actor model.
 ##########################################################################
 
 from gvas.config import settings
-from gvas.base import Simulation
+from gvas.dynamo import Stream, Normal
+from gvas.cluster.network import Message
+from gvas.base import Simulation, Process
 from gvas.cluster import create_default_cluster
 from gvas.actors import ActorProgram, ActorManager
 
+##########################################################################
+## Module Constants
+##########################################################################
+
+MESSAGE_SIZE     = settings.simulations.balance.message_size
+MESSAGE_MEAN     = settings.simulations.balance.message_mean
+MESSAGE_STDDEV   = settings.simulations.balance.message_stddev
+SPIKE_SCALE      = settings.simulations.balance.spike_scale
+SPIKE_PROBABILTY = settings.simulations.balance.spike_prob
+SPIKE_DURATION   = settings.simulations.balance.spike_duration
+
+##########################################################################
+## Data Generator (Stream)
+##########################################################################
+
+class StreamingData(Process):
+    """
+    Generates data volume via the stream dynamo.
+
+    TODO: Move out of simulation to a helper module.
+    """
+
+    def __init__(self, env, service, **kwargs):
+        """
+        Takes an environment and an actor service, and streams data to it.
+        """
+        self.service = service
+        self.stream  = Stream(MESSAGE_MEAN, MESSAGE_STDDEV, SPIKE_SCALE, SPIKE_PROBABILTY, SPIKE_DURATION)
+        self.values  = Normal(64, 32)
+        super(StreamingData, self).__init__(env)
+
+    def run(self):
+        """
+        Creates messages based on the data volume and sends to the service.
+        """
+
+        # Don't start for a few iterations
+        yield self.env.timeout(5)
+
+        while True:
+            volume = int(self.stream.next())
+            if volume > 0:
+                for idx in xrange(volume):
+                    self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE))
+
+            yield self.env.timeout(1)
+
+
+class BalanceActor(ActorProgram):
+
+    def handle(self, message):
+        pass
 
 ##########################################################################
 ## Load Balance Simulation
@@ -59,17 +113,24 @@ class BalanceSimulation(Simulation):
         """
         Returns the percent of nodes that are utilized
         """
-        nodes = 0
-        idle  = 0
+        nodes  = 0
+        active = 0
 
         for node in self.cluster.nodes:
-            nodes += node.cpus
-            idle += node.idle_cpus
+            nodes  += node.cpus
+            active += sum(1 for program in node.programs.itervalues() if program.active)
 
-        return float(nodes - idle) / float(nodes)
+        return float(active) / float(nodes)
 
     def script(self):
         """
         Constructs the load balancing script for the simulation.
         """
         self.manager = ActorManager(self.env, self.cluster)
+        self.stream  = StreamingData(self.env, self.manager)
+
+        # Create actor programs for every node in the cluster.
+        for node in self.cluster.nodes:
+            for idx in xrange(node.cpus):
+                program = BalanceActor(self.env, self.manager, ports=[idx], node=node)
+                node.programs[idx] = program

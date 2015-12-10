@@ -98,6 +98,14 @@ class Network(object):
         delay = 100 - int(float(self.bandwidth) / float(self.capacity) * 100)
         return self.base_latency + delay
 
+    @property
+    def traffic(self):
+        """
+        Returns the total size of messages on the network (opposite of
+        bandwidth, e.g. the used bandwidth of the network).
+        """
+        return self.capacity - self.bandwdith
+
     def __str__(self):
         return "Network: capacity={},  bandwidth={}, base_latency={}, latency={}".format(
             self.capacity,

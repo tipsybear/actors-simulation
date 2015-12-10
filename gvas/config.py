@@ -101,6 +101,12 @@ class SimulationsConfiguration(SerializableConfiguration):
     class BalanceSimulationConfiguration(SerializableConfiguration):
 
         volume_threshold = 100
+        message_size     = 128
+        spike_prob       = 0.25
+        spike_duration   = 15
+        spike_scale      = 10
+        message_mean     = 100
+        message_stddev   = 24
 
     simple = SimpleSimulationConfiguration()
     balance = BalanceSimulationConfiguration()

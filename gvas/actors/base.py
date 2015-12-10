@@ -38,10 +38,11 @@ class ActorProgram(Program):
     provide concurrency on the cluster.
     """
 
-    def __init__(self, env, *args, **kwargs):
+    def __init__(self, env, manager, *args, **kwargs):
         # The manager is the GVAS actor service and is required.
-        self.manager    = kwargs['manager']
+        self.manager    = manager
 
+        self.ready      = False  # Ready to receive a message
         self.active     = False  # Active or inactive state
         self.checkpoint = False  # Require a persist on the next go around
         self.message    = None   # Message channel to listen for messages
@@ -86,8 +87,15 @@ class ActorProgram(Program):
         """
         Listen for an incomming message
         """
+        self.ready = True
         self.message = self.env.event()
         yield self.message
+
+    def is_listening(self):
+        """
+        Returns True if the actor is listening for a message, else False.
+        """
+        return self.ready and self.message is not None
 
     def persist(self):
         """
@@ -100,14 +108,16 @@ class ActorProgram(Program):
         Sends messages using the actor manager.
         """
         yield self.env.timeout(SEND_LATENCY)
-        self.manager.send(message)
+        self.manager.route(message)
 
     def recv(self, value):
         """
         Called on receipt of a message from the node.
         """
-        self.handle(value)
+        self.ready = False
         self.message.succeed()
+        self.message = None
+        self.handle(value)
 
     def run(self):
         """

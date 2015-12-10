@@ -164,6 +164,51 @@ class Cluster(Machine):
 
         raise ClusterLacksCapacity()
 
+    def get_message_count(self):
+        """
+        Returns the number of messages on the network
+        """
+        return sum(
+            r.network.message_count for r in self.racks.itervalues()
+        )
+
+    def get_total_message_size(self):
+        """
+        Returns the total size of the messages on the network
+        """
+        return sum(
+            r.network.traffic for r in self.racks.itervalues()
+        )
+
+    def get_total_latency(self):
+        """
+        Returns the total latency of the network
+        """
+        return sum(
+            r.network.latency for r in self.racks.itervalues()
+        )
+
+    def get_average_latency(self):
+        """
+        Returns the mean latency of the network
+        """
+        return self.get_total_latency() / float(len(self.racks))
+
+    def get_total_bandwidth(self):
+        """
+        Returns the total bandwidth of the network
+        """
+        return sum(
+            r.network.bandwidth for r in self.racks.itervalues()
+        )
+
+    def get_average_bandwidth(self):
+        """
+        Returns the mean latency of the network
+        """
+        return self.get_total_bandwidth() / float(len(self.racks))
+
+
     def __str__(self):
         nodes = sum([len(r.nodes) for r in self.racks.itervalues()])
         return "Cluster: id: {}, racks={},  nodes={}".format(

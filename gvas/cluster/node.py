@@ -111,7 +111,7 @@ class Node(Machine):
         """
         Number of available CPUs for this node.
         """
-        used = sum([p.cpus for p in self.programs.iteritems()])
+        used = sum([p.cpus for p in self.programs.itervalues()])
         return self.cpus - used
 
     @property
@@ -119,7 +119,7 @@ class Node(Machine):
         """
         Gigabytes of available memory for this node
         """
-        used = sum([p.memory for p in self.programs.iteritems()])
+        used = sum([p.memory for p in self.programs.itervalues()])
         return self.memory - used
 
     def __str__(self):
