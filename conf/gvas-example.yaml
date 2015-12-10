@@ -35,20 +35,23 @@ logging:
 
 # generalized default values used across simulations
 defaults:
-  network:
-    capacity: 1000
-    base_latency: 10
-  cluster:
-    size: 2
-  rack:
-    size: 4
-    egress_latency: 20
-  node:
-    cpus: 4
-    memory: 16
-  program:
-    cpus: 1
-    memory: 4
+    actors:
+        persistence_cost: 2
+
+    network:
+        capacity: 1000
+        base_latency: 10
+    cluster:
+        size: 2
+    rack:
+        size: 4
+        egress_latency: 20
+    node:
+        cpus: 4
+        memory: 16
+    program:
+        cpus: 1
+        memory: 4
 
 # simulation specific parameters
 simulations:
