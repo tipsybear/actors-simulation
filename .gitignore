@@ -63,6 +63,8 @@ target/
 *.fls
 *.pdf
 *.synctex.gz
+*.bbl
+*.blg
 
 .DS_Store
 conf/gvas.yaml
