@@ -1,0 +1,132 @@
+% report.tex - HPC 714 Report
+\documentclass[conference]{IEEEtran}
+
+% Load packages for the report
+\usepackage{cite}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{url}
+
+% Graphics and figures configuration
+\usepackage[pdftex]{graphicx}
+% declare the path(s) where your graphic files are
+\graphicspath{{./figures/}}
+% and their extensions so you won't have to specify these with
+% every instance of \includegraphics
+\DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+
+% Math package configuration
+\usepackage{amsmath}
+\interdisplaylinepenalty=2500
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+
+% report title
+\title{Actors for Distributed Dataflow}
+
+
+% author names and affiliations
+\author{
+    \IEEEauthorblockN{Benjamin Bengfort}
+    \IEEEauthorblockA{
+    \textit{University of Maryland}\\
+    Department of Computer Science\\
+    Email: bengfort@cs.umd.edu\\
+    }
+
+    \and
+    \IEEEauthorblockN{Allen Leis}
+    \IEEEauthorblockA{\textit{University of Maryland}\\
+    Department of Computer Science\\
+    Email: aleis@umd.edu\\
+    }
+
+    \and
+    \IEEEauthorblockN{Konstantinos Xirogiannopoulos}
+    \IEEEauthorblockA{\textit{University of Maryland}\\
+    Department of Computer Science\\
+    Email: kostasx@cs.umd.edu\\
+}}
+
+% make the title area
+\maketitle
+
+% report abstract
+\begin{abstract}
+The abstract goes here.
+\end{abstract}
+
+
+
+\section{Introduction}
+
+\subsection{The Actor Model}
+
+Actor model MIT dissertation \cite{agha_actors:_1985}
+
+Actor frameworks for JVM \cite{karmani_actor_2009}
+
+Scala Actors (unifying threads and events) \cite{haller_scala_2009}
+
+\subsection{Generalized Virtual Actor Space}
+
+Orleans \cite{bernstein_orleans:_????}
+
+
+\section{Applications Analysis}
+
+\subsection{Email Analysis Data Flow}
+
+Heron, \cite{kulkarni_twitter_2015}
+Storm, \cite{toshniwal_storm_2014}
+
+DStreams, \cite{zaharia_discretized_2012}
+
+
+\subsection{Online Recommendations}
+
+Parallel sparse matrix factorization \cite{gupta_highly_1997}
+Coordinate Descent factorization \cite{yu_scalable_2012}
+Distributed SGD \cite{gemulla_large-scale_2011}
+
+\subsection{USGS Magnetometer Prediction}
+
+Bayesian anomaly detection in sensor networks \cite{hill_real-time_2007}
+Downpour SGD \cite{dean_large_2012}
+A Bayesian approach to solar flare prediction \cite{wheatland_bayesian_2004}
+Solar Flare prediction using machine learning \cite{qahwaji_automatic_2007}
+Solar Flare Prediction using short term sequential approach \cite{yu_short-term_2009}
+Solar Flare Prediction using multiresolution predictors \cite{yu_short-term_2010}
+
+
+\cite{}
+
+\section{Simulation Methodology}
+
+Simpy \cite{matloff_introduction_2008}
+
+\section{Conclusion}
+The conclusion goes here.
+
+
+
+
+% conference papers do not normally have an appendix
+
+
+% use section* for acknowledgment
+\section*{Acknowledgment}
+We would like to thank Dr. Josh Rigler from USGS for discussing the magnetometer project with us, the available data sources and how it could be computed upon. We would also like to thank Dr. Michael Wiltberger from NCAR as well as Dr. Alan Susman from UMD who put us in touch with Dr. Rigler. Finally we'd like to thank Dr. Amol Deshpande for taking a look at our work and inspiring the initial actor model research.
+
+% begin the references section.
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,paper}
+
+
+
+% that's all folks
+\end{document}
