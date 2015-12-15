@@ -65,10 +65,10 @@ class DefaultsConfiguration(SerializableConfiguration):
 
     class ClusterConfiguration(SerializableConfiguration):
         size = 2
-        node_count = 8
+        node_count = 64
 
     class RackConfiguration(SerializableConfiguration):
-        size = 96
+        size = 32
         egress_latency = 10
 
     class ProgramConfiguration(SerializableConfiguration):
@@ -76,8 +76,8 @@ class DefaultsConfiguration(SerializableConfiguration):
         memory = 2
 
     class ActorsConfiguration(SerializableConfiguration):
-
         persistence_cost = 2
+
 
     network = NetworkConfiguration()
     cluster = ClusterConfiguration()
@@ -98,7 +98,18 @@ class SimulationsConfiguration(SerializableConfiguration):
         min_msg_value = 10
         max_msg_value = 50
 
+    class BalanceSimulationConfiguration(SerializableConfiguration):
+
+        volume_threshold = 100
+        message_size     = 128
+        spike_prob       = 0.05
+        spike_duration   = 15
+        spike_scale      = 5
+        message_mean     = 16
+        message_stddev   = 8
+
     simple = SimpleSimulationConfiguration()
+    balance = BalanceSimulationConfiguration()
 
 ##########################################################################
 ## Logging Configuration
@@ -112,7 +123,7 @@ class LoggingConfiguration(Configuration):
     """
 
     level   = "INFO"
-    logfmt  = "%(msgid)5d %(message)s"
+    logfmt  = "[%(time)5d] %(message)s"
     datefmt = "%Y-%m-%dT%H:%M:%S%z"
     disable_existing_loggers = False
 

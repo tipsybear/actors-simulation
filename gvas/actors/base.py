@@ -25,7 +25,7 @@ from gvas.config import settings
 ##########################################################################
 
 SEND_LATENCY     = 1
-PERSISTENCE_COST = settings.defaults.actors.peristence_cost
+PERSISTENCE_COST = settings.defaults.actors.persistence_cost
 
 ##########################################################################
 ## Actor Program
@@ -38,15 +38,16 @@ class ActorProgram(Program):
     provide concurrency on the cluster.
     """
 
-    def __init__(self, env, *args, **kwargs):
-        # The manager is the GVAS actor service
-        self.manager = kwargs['manager']
+    def __init__(self, env, manager, *args, **kwargs):
+        # The manager is the GVAS actor service and is required.
+        self.manager    = manager
 
-        self.active  = False  # Active or inactive state
-        self.persist = False  # Require a persist on the next go around
-        self.message = None   # Message channel to listen for messages
-        self.hydrate = None   # Activation channel to listen for activations
-        self.outbox  = []     # Handle puts messages on the outbox to send
+        self.ready      = False  # Ready to receive a message
+        self.active     = False  # Active or inactive state
+        self.checkpoint = False  # Require a persist on the next go around
+        self.message    = None   # Message channel to listen for messages
+        self.hydrate    = None   # Activation channel to listen for activations
+        self.outbox     = []     # Handle puts messages on the outbox to send
 
         super(ActorProgram, self).__init__(env, *args, **kwargs)
 
@@ -86,8 +87,15 @@ class ActorProgram(Program):
         """
         Listen for an incomming message
         """
+        self.ready = True
         self.message = self.env.event()
         yield self.message
+
+    def is_listening(self):
+        """
+        Returns True if the actor is listening for a message, else False.
+        """
+        return self.ready and self.message is not None
 
     def persist(self):
         """
@@ -100,14 +108,16 @@ class ActorProgram(Program):
         Sends messages using the actor manager.
         """
         yield self.env.timeout(SEND_LATENCY)
-        self.manager.send(message)
+        self.manager.route(message)
 
     def recv(self, value):
         """
         Called on receipt of a message from the node.
         """
-        self.handle(value)
+        self.ready = False
         self.message.succeed()
+        self.message = None
+        self.handle(value)
 
     def run(self):
         """
@@ -130,5 +140,5 @@ class ActorProgram(Program):
                     yield self.env.process(self.send(msg))
 
                 # If we must persist then do so
-                if self.persist:
+                if self.checkpoint:
                     yield self.env.process(self.persist())

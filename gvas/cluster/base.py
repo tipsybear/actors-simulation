@@ -18,7 +18,6 @@ Base classes for cluster simulation framework.
 ##########################################################################
 
 from gvas.base import NamedProcess
-from .network import Network
 
 ##########################################################################
 # Classes
@@ -26,17 +25,20 @@ from .network import Network
 
 class Machine(NamedProcess):
 
-    def __init__(self, env, *args, **kwargs):
-        self._network = Network.create(env, parent=self).next()
+    def __init__(self, env, **kwargs):
+        """
+        Pass-through for NamedProcess init without keywords
+        """
         super(Machine, self).__init__(env)
 
     @classmethod
-    def create(self, *args, **kwargs):
+    def create(cls, env, *args, **kwargs):
         """
         Generalized factory method to return a generator that can produce
         new instances.
         """
-        raise NotImplementedError('Subclasses should override this method.')
+        while True:
+            yield cls(env, *args, **kwargs)
 
     def send(self, *args, **kwargs):
         """
@@ -49,18 +51,3 @@ class Machine(NamedProcess):
         Generalized method to obtain a message from the contained network.
         """
         raise NotImplementedError('Subclasses should override this method.')
-
-    @property
-    def network(self):
-        """
-        Returns a reference to the underlying Network instance
-        """
-        return self._network
-
-
-##########################################################################
-# Execution
-##########################################################################
-
-if __name__ == '__main__':
-    pass

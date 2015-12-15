@@ -30,6 +30,7 @@ from gvas.config import settings
 from gvas.base import Process, NamedProcess
 from gvas.base import Simulation
 from gvas.cluster import *
+from gvas.cluster.network import Message, Address
 from gvas.dynamo import Uniform
 
 ##########################################################################
@@ -66,10 +67,15 @@ class SimpleSimulation(Simulation):
         Process method to record the state of the networks once per cycle.
         """
         while True:
-            self.diary.update('message_count', self._message_count)
-            self.diary.update('message_size', self._message_size)
-            self.diary.update('avg_bandwidth', self._avg_bandwidth)
-            self.diary.update('avg_used_bandwidth', self._avg_used_bandwidth)
+            # self.diary.update('message_count', self._message_count)
+            # self.diary.update('message_size', self._message_size)
+            # self.diary.update('avg_bandwidth', self._avg_bandwidth)
+            # self.diary.update('avg_used_bandwidth', self._avg_used_bandwidth)
+            msg_size  = float(self._message_size)
+            msg_count = float(self._message_count)
+            avg_msg   = msg_size / msg_count if msg_count > 0 else 0.0
+
+            self.diary.update('avg_message_size', avg_msg)
             self.diary.update('avg_latency', self._avg_latency)
             yield self.env.timeout(1)
 
@@ -163,9 +169,9 @@ class PingProgram(Program):
 
         super(PingProgram, self).__init__(env, *args, **kwargs)
 
-    def recv(self, value):
+    def recv(self, message):
         # print "Program {}: received a message with value {} at {}\n".format(self.id, value, self.env.now)
-        self.work_queue.append(value)
+        self.work_queue.append(message.value)
         self.msg_received.succeed()
         self.msg_received = self.env.event()
 
@@ -199,9 +205,9 @@ class PingProgram(Program):
         recip = self.node.rack.cluster.random(
             lambda n: n.id != self.node.id and n.programs
         )
+
         self.node.send(
-            address=recip.address,
-            port=3333,
+            dst=recip.address._replace(port=3333),
             size=self.message_size_gen.next(),
             value=self.message_value_gen.next()
         )

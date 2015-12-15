@@ -21,6 +21,7 @@ from gvas.config import settings
 from gvas.exceptions import RackLacksCapacity
 from .base import Machine
 from .node import Node
+from .network import Network, Address
 
 ##########################################################################
 # Classes
@@ -44,16 +45,8 @@ class Rack(Machine):
             settings.defaults.rack.egress_latency
         )
         self.nodes = {}
+        self.network = Network.create(env, parent=self).next()
         super(self.__class__, self).__init__(env, *args, **kwargs)
-
-    @classmethod
-    def create(cls, env, *args, **kwargs):
-        """
-        Generalized factory method to return a generator that can produce
-        new instances.
-        """
-        while True:
-            yield cls(env, *args, **kwargs)
 
     def filter(self, evaluator):
         """
@@ -69,30 +62,28 @@ class Rack(Machine):
         """
         pass
 
-    def send(self, address, port, size, value=None):
+    def send(self, message):
         """
         Generalized method to put message onto the contained network.
         """
-        # determine destination rack
-        rack_id, node_id = map(lambda x: int(x), address.split(':'))
-        dest_rack = self.cluster.racks[rack_id]
-
         # put on internal network
-        self.env.process(self._send(address=address, port=port, size=size, value=value))
+        self.env.process(self._send(message))
+
+        # determine destination rack
+        rack_id = message.dst.rack
+        node_id = message.dst.node
 
         # put on external network if needed
-        if self != dest_rack:
+        if self.id != rack_id:
+            dest_rack = self.cluster.racks[rack_id]
             self.env.process(
                 dest_rack._send(
-                    address=address,
-                    port=port,
-                    size=size,
-                    value=value,
+                    message,
                     outbound=True,
                 )
             )
 
-    def _send(self, address, port, size, value=None, outbound=False):
+    def _send(self, message, outbound=False):
         """
         simpy process to simulate sending a message onto a bus and then triggering
         the recv after an appropriate latency period.
@@ -100,7 +91,7 @@ class Rack(Machine):
         # print "Rack {}: sending message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
 
         # reserve bandwidth to put msg on the bus
-        self.network.send(size)
+        self.network.send(message.size)
 
         # computed total latency
         latency = self.network.latency
@@ -111,23 +102,20 @@ class Rack(Machine):
         yield self.env.timeout(latency)
 
         # initiate recv to pick msg off the bus
-        self.recv(address=address, port=port, size=size, value=value)
+        self.recv(message)
 
-    def recv(self, address, port, size, value=None):
+    def recv(self, message):
         """
         Generalized method to obtain a message from the contained network.
         """
         # print "Rack {}: recv message (address: {}, size: {}, value: {}) at {}\n".format(self.id, address, size, value, self.env.now)
 
-        # determine destination rack
-        rack_id, node_id = map(lambda x: int(x), address.split(':'))
-
         # de-allocate the reserved bandwidth on the bus
-        self.network.recv(size)
+        self.network.recv(message.size)
 
         # hand off to local node if we have it otherwise ignore as outgoing traffic
-        if rack_id == self.id:
-            self.nodes[node_id].recv(port=port, size=size, value=value)
+        if message.dst.rack == self.id:
+            self.nodes[message.dst.node].recv(message)
 
     def add(self, node=None):
         """
@@ -166,6 +154,13 @@ class Rack(Machine):
         ancestor class and so all subclasses may share the same Sequence.
         """
         return self._id
+
+    @property
+    def address(self):
+        """
+        Returns the rack addressable address.
+        """
+        return Address(self.id, None, None, None)
 
     @property
     def space(self):
