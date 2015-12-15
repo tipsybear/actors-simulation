@@ -118,6 +118,8 @@ class ActorManager(Process, LoggingMixin):
                     source = self.cluster.racks[message.dst.rack]
 
                 # Mark actor as queued and send the message
+                # If you comment out the below lines, then the streaming data
+                # service doesn't stall. What's going on here?
                 actor.ready = False
                 return source.send(message)
 

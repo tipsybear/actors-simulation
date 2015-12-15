@@ -102,7 +102,7 @@ class SimulationsConfiguration(SerializableConfiguration):
 
         volume_threshold = 100
         message_size     = 128
-        spike_prob       = 0.25
+        spike_prob       = 0.05
         spike_duration   = 15
         spike_scale      = 5
         message_mean     = 16
