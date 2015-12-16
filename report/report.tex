@@ -110,8 +110,6 @@ Orleans \cite{bernstein_orleans:_????}
 % This paragraph is pretty fundamental
 In order to show that a generalized virtual actor framework is a distributed programming abstraction well suited to handling streaming data for online applications we must show two things: (1) that the model is a high level abstraction, friendly to programmers but providing powerful concurrent guarantees and (2) that the model can be applied to real world problems in an efficient and robust manner. We hope to have shown the former in the last section where we described how programs are built using the actor framework. In this section, we explore the latter by analyzing three streaming applications and how they would be adapted to the actor model.
 
-
-
 \subsection{Email Analysis Data Flow}
 
 Heron, \cite{kulkarni_twitter_2015}
@@ -190,10 +188,22 @@ Simpy \cite{matloff_introduction_2008}
 
 Our streaming data simulation is shown in Figure \ref{fig:streaming}.
 
+% TODO: Cluster framework and representation
+% TODO: Parameters for the simulation (streaming is already above)
+% TODO: Discuss evaluation metric, utilization
+
+\section{Discussion}
+
+% TODO: Discuss what we learned
+% TODO: Future work, etc.
+
+If the number of available actors doesn't exceed the expected traffic, then the queue will continue to grow; forcing a reconfiguration.
+
 \section{Conclusion}
 The conclusion goes here.
 
-If the number of available actors doesn't exceed the expected traffic, then the queue will continue to grow; forcing a reconfiguration.
+% This should be very brief
+
 
 
 % conference papers do not normally have an appendix
