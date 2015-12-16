@@ -80,16 +80,17 @@ class ActorManager(Process, LoggingMixin):
         """
         Select the next available actor in the cluster
         """
-        # Phase one: look for an active and ready actor
-        for actor in self.filter(lambda a: a.active and a.ready):
-            yield actor
+        while True:
+            # Phase one: look for an active and ready actor
+            for actor in self.filter(lambda a: a.active and a.ready):
+                yield actor
 
-        # Otherwise we need to activate an actor
-        for actor in self.filter(lambda a: not a.active):
-            yield actor
+            # Otherwise we need to activate an actor
+            for actor in self.filter(lambda a: not a.active):
+                yield actor
 
-        # No actors are available at all!
-        yield None
+            # No actors are available at all!
+            yield None
 
     def route(self, message):
         """
