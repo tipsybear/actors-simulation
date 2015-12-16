@@ -42,6 +42,7 @@ class ActorManager(Process, LoggingMixin):
         """
         while True:
             # Create temporary queue
+            self.queue.reverse()
             queue = list(self.queue)
             self.queue.clear()
 
@@ -129,4 +130,5 @@ class ActorManager(Process, LoggingMixin):
                 actor.activate()
 
         # We could do nothing, so queue the message
+        message = message._replace(dst=None)
         self.queue.append(message)
