@@ -1,5 +1,7 @@
 % report.tex - HPC 714 Report
-% \documentclass[draftclsnofoot,onecolumn,conference,10pt]{IEEEtran}
+% Uncomment the below line for the double spaced, review copy
+% \documentclass[draftclsnofoot,onecolumn,conference,11pt]{IEEEtran}
+% Uncomment the below line for the two column, final copy
 \documentclass[conference,twocolumn,11pt]{IEEEtran}
 
 % Load packages for the report
@@ -75,17 +77,40 @@ In this paper we investigate the potential of virtual actors for distributed com
 
 The rest of this paper is organized as follows. In the first section we will present the details of our distributed computing model using actors, and describe the generalized virtual actor space in detail. Following this, we will describe the applications we analyzed, and how we built a communications model from each type of application. Finally, we will describe our simulation methodology, present our results, and conclude with a discussion and future work.
 
-\subsection{The Actor Model}
+\section{Distributed Computing Framework}
+
+This section describes a distributed computing framework that utilizes \textit{virtual actors} and its implementation for handling always-on computations that deal with streaming data. This framework sets the stage for the analysis of applications and their communications patterns and informs the construction of the simulation.
+
+\subsection{Actors for Concurrency}
+
+Actors are a model for reasoning about concurrent computation which is inspired by the \textit{communication mechanisms} of a society of experts that engage in effective problem solving \cite{hewitt_viewing_1977}.  Like other distributed models, actors are event oriented where events are received messages from other actors, and therefore parallelism is demonstrated through the partial ordering of events. At a higher level, actors can be seen as data or task parallel pieces of a larger overall computation which maintain their state (e.g. each actor is a SPMD program).
+
+% TODO: Kostas can you take this part?
+
+Actors embody the three fundamental properties of computation: (1) storage, (2) processing or state change, (3) communication.
 
 Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
 
 
 \subsection{Generalized Virtual Actor Space}
 
+% TODO: Kostas, can you take a swing at this while I'm dealing with kids?
+
 Orleans \cite{bernstein_orleans:_????}
 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{architecture}
+    \caption{The architecture for a generalized virtual actor framework.}
+    \label{fig:architecture}
+\end{figure}
 
 \section{Applications Analysis}
+
+% This paragraph is pretty fundamental
+In order to show that a generalized virtual actor framework is a distributed programming abstraction well suited to handling streaming data for online applications we must show two things: (1) that the model is a high level abstraction, friendly to programmers but providing powerful concurrent guarantees and (2) that the model can be applied to real world problems in an efficient and robust manner. We hope to have shown the former in the last section where we described how programs are built using the actor framework. In this section, we explore the latter by analyzing three streaming applications and how they would be adapted to the actor model.
+
+
 
 \subsection{Email Analysis Data Flow}
 
@@ -94,12 +119,25 @@ Storm, \cite{toshniwal_storm_2014}
 
 DStreams, \cite{zaharia_discretized_2012}
 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{dataflow_cast}
+    \caption{The actor cast for a typical dataflow program.}
+    \label{fig:dataflow_cast}
+\end{figure}
 
 \subsection{Online Recommendations}
 
 Parallel sparse matrix factorization \cite{gupta_highly_1997}
 Coordinate Descent factorization \cite{yu_scalable_2012}
 Distributed SGD \cite{gemulla_large-scale_2011}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{nnmf_cast}
+    \caption{The actor cast for implementing online recommendations with matrix factorization.}
+    \label{fig:nnmf_cast}
+\end{figure}
 
 \subsection{USGS Magnetometer Prediction}
 
@@ -110,14 +148,52 @@ Solar Flare prediction using machine learning \cite{qahwaji_automatic_2007}
 Solar Flare Prediction using short term sequential approach \cite{yu_short-term_2009}
 Solar Flare Prediction using multiresolution predictors \cite{yu_short-term_2010}
 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{solar_cast}
+    \caption{The actor cast for a bagging approach to multiple machine learning models for solar flare prediction.}
+    \label{fig:solar_cast}
+\end{figure}
+
+\subsection{Communication Pattern Analysis}
+
+%TODO: This figures look weird. They need scaling to make them the right size.
+\begin{figure*}[!t]
+    \centering
+    \subfloat[Email Dataflow]{\includegraphics[width=0.3\textwidth]{dataflow_comms}
+    \label{fig:dataflow_comms}}
+    \hfil
+    \subfloat[Online Recommendation]{\includegraphics[width=0.3\textwidth]{nnmf_comms}
+    \label{fig:nnmf_comms}}
+    \hfil
+    \subfloat[Solar Prediction]{\includegraphics[width=0.3\textwidth]{solar_comms}
+    \label{fig:solar_comms}}
+    \caption{The corresponding communications patterns that we developed from these applications included branching, partial communication, iterative, front-loaded communication, and multiple-channel, full communication.}
+    \label{fig:communications_patterns}
+\end{figure*}
+
+% TODO: this paragraph needs help
+Through the analysis of these applications, which were selected to represent a variety of workflows and computational challenges, we noticed that the data flow of each represented different communication patterns. Because actors and distributed computing in general are inherently about communication, our approach became to first model the application as an actor cast, then once the cast had been finalized, to abstract the cast into a general communication pattern. We then used these general communication patterns to simulate traffic on a cluster of actors and show how a general actor space could be used for load balancing and scaling.
+
+Described in detail in the following sections, the three applications are as follows: (1) a traditional data flow for real-time email analysis of a corporate network, (2) realtime recommendations an online store, and (3) solar flare prediction using deep belief networks and magnetometers. The corresponding communications patterns that we developed from these applications included branching, partial communication, iterative, front-loaded communication, and multiple-channel, full communication.
+
 \section{Simulation Methodology}
 
 Simpy \cite{matloff_introduction_2008}
 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{streaming}
+    \caption{Variable streaming data source with spikes of high activity, and longer periods of normal activity.}
+    \label{fig:streaming}
+\end{figure}
+
+Our streaming data simulation is shown in Figure \ref{fig:streaming}.
+
 \section{Conclusion}
 The conclusion goes here.
 
-
+If the number of available actors doesn't exceed the expected traffic, then the queue will continue to grow; forcing a reconfiguration.
 
 
 % conference papers do not normally have an appendix
