@@ -1,5 +1,5 @@
 % report.tex - HPC 714 Report
-\documentclass[conference]{IEEEtran}
+\documentclass[draftclsnofoot,onecolumn,conference,10pt]{IEEEtran}
 
 % Load packages for the report
 \usepackage{cite}
@@ -57,7 +57,7 @@
 
 % report abstract
 \begin{abstract}
-The abstract goes here.
+Recently, the Actor model of concurrency in distributed systems has regained popularity as cluster computing frameworks for large scale analytics have become mainstream. In particular, the use of virtual actors provides automatic scaling and load balancing through virtual actor properties of perpetual existence, automatic instantiation, and locale transparency. This programming model is ideal for data processing of streams of unbounded data sets, in a computing architecture of live, online processing of data. In this paper, we present the communication patterns of three such data processing applications as casts of Actors. We then model the communication behavior on a cluster using a simulation and show that the actor model effectively describes how a cluster should behave in response to variable volumes of data. We propose that this simulation motivates the future work of generalizing virtual actor spaces for distributed computation.
 \end{abstract}
 
 
