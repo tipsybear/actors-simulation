@@ -85,11 +85,11 @@ This section describes a distributed computing framework that utilizes \textit{v
 
 \subsection{Actors for Concurrency}
 
-Actors are a model for reasoning about concurrent computation which is inspired by the \textit{communication mechanisms} of a society of experts that engage in effective problem solving \cite{hewitt_viewing_1977}.  Like other distributed models, actors are event oriented where events are received messages from other actors, and therefore parallelism is demonstrated through the partial ordering of events. At a higher level, actors can be seen as data or task parallel pieces of a larger overall computation which maintain their state (e.g. each actor is a SPMD program).
+Actors are a model for reasoning about concurrent computation which is inspired by the \textit{communication mechanisms} of a society of experts that engage in effective problem solving \cite{hewitt_viewing_1977}.  Like other distributed models, actors are event oriented where ``events'' are messages received from other actors, and therefore parallelism is demonstrated through the partial ordering of these events. At a higher level, actors can be seen as data or task parallel pieces of a larger overall computation which maintain their state (e.g. each actor is a SPMD program).
 
-% TODO: Kostas can you take this part?
+Actors embody the three fundamental properties of computation: (1) storage (state), (2) processing , and (3) communication. In the traditional model, actors provide a simple abstraction for units of computation that can be programmed. Using these three resources at their disposal, Actors provide an intuitive way to reason about concurrent computation; as they can be easily associated with the real world. Actors provide a simple, concise interface that contribute to the programmability of this model. Actors operate under three necessary and sufficient \textit{axioms}. In response to the receipt of a message, apart from \textit{altering its own state}, an actor can engage in one of three simple actions: They can (1) create a finite number of \textit{new} actors, (2) send a finite number of messages to other actors it has the addresses of, and (3) designate its behavior upon receiving the next message. According to the conceptual model, actors can process a single message at a time, but in practice, they can be implemented so that they can handle arbitrarily many messages at a time. %maybe connect this to the thing im saying below as to the fact that you can do different things under the hood shows the power of this abstraction.
 
-Actors embody the three fundamental properties of computation: (1) storage, (2) processing or state change, (3) communication.
+We believe the power of the actor model lies in its simplicity, as well as its ability to concisely model the control flow of parallel computation as it naturally ``emerges'' out of the behavior of actor entities in response to the receipt of messages.
 
 Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
 
@@ -97,8 +97,11 @@ Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
 \subsection{Generalized Virtual Actor Space}
 
 % TODO: Kostas, can you take a swing at this while I'm dealing with kids?
+- Orleans was inspired by and is a modern outlook on the traditional actor model.
+- Basic idea: Virtual actors are logical entities that always exist. Actors have activations, and an activation can be spawned anywhere in the system. Actors are either stateful (only one activation at a time) or stateless (unboundedly scalable).
+- Meant as a framework for easily and  intuitively programming distributed systems.
 
-Orleans \cite{bernstein_orleans:_????}
+Orleans \cite{bernstein_orleans:_2014}
 
 \begin{figure}[!h]
     \centering
@@ -110,7 +113,9 @@ Orleans \cite{bernstein_orleans:_????}
 \section{Applications Analysis}
 
 % This paragraph is pretty fundamental
-In order to show that a generalized virtual actor framework is a distributed programming abstraction well suited to handling streaming data for online applications we must show two things: (1) that the model is a high level abstraction, friendly to programmers but providing powerful concurrent guarantees and (2) that the model can be applied to real world problems in an efficient and robust manner. We hope to have shown the former in the last section where we described how programs are built using the actor framework. In this section, we explore the latter by analyzing three streaming applications and how they would be adapted to the actor model.
+In order to show that a generalized virtual actor framework is a distributed programming abstraction well suited to handling streaming data for online applications we must show two things: (1) that the model is a high level abstraction, friendly to programmers while also providing powerful concurrent guarantees and (2) that the model can be applied to real world problems in an efficient and robust manner. We hope to have shown the former in the last section where we described how programs are built using the actor framework. In this section, we explore the latter by analyzing three streaming applications and how they would be adapted to the actor model.
+
+\kostasnote{I like this paragraph a lot, but I'm not sure that showing (1) is that simple without an actual interface/API to show for it. We could defer that to future work for sure, also (2) also involves the simulation, so you should include that in the ``way we're showing this'' argument}
 
 \subsection{Email Analysis Data Flow}
 
@@ -173,7 +178,8 @@ Solar Flare Prediction using multiresolution predictors \cite{yu_short-term_2010
 \end{figure*}
 
 % TODO: this paragraph needs help
-Through the analysis of these applications, which were selected to represent a variety of workflows and computational challenges, we noticed that the data flow of each represented different communication patterns. Because actors and distributed computing in general are inherently about communication, our approach became to first model the application as an actor cast, then once the cast had been finalized, to abstract the cast into a general communication pattern. We then used these general communication patterns to simulate traffic on a cluster of actors and show how a general actor space could be used for load balancing and scaling.
+Through the analysis of these applications, which were selected to represent a variety of workflows and computational challenges, we noticed that the data flow of each represented uniquely interesting communication patterns. Because actors and distributed computing in general are inherently about communication, our approach became to first model the application as an actor cast, then once the cast had been finalized, to abstract the cast into a general communication pattern. We then used these general communication patterns to simulate traffic on a cluster of actors and show how a general actor space could be used for load balancing and scaling.
+\kostasnote{(I think the word ``cast'' should be defined somewhere)}
 
 Described in detail in the following sections, the three applications are as follows: (1) a traditional data flow for real-time email analysis of a corporate network, (2) realtime recommendations an online store, and (3) solar flare prediction using deep belief networks and magnetometers. The corresponding communications patterns that we developed from these applications included branching, partial communication, iterative, front-loaded communication, and multiple-channel, full communication.
 
@@ -198,6 +204,11 @@ Our streaming data simulation is shown in Figure \ref{fig:streaming}.
 
 % TODO: Discuss what we learned
 % TODO: Future work, etc.
+Creating this simulation was a great idea...
+Allowed for reasoning about the behaviour of such a system in different workloads, communication patterns, and hardware setup configurations.
+
+The results yielded by the simulation appear to be ...
+Our goals overlooking future work are tri-fold. We are interested in continuing to potentially add complexity to the simulation, which will allow for even more precise results. We believe another fundamental piece of this is also focusing on providing an easy to use API that will allow for as intuitive as possible programmability and adaptability of a framework like this into a cluster. Finally, once we will begin building a prototype of the system and start using it.  We believe that the system building process will spawn new and exciting problems in this space that will motivate and guide our future research on these topics.
 
 If the number of available actors doesn't exceed the expected traffic, then the queue will continue to grow; forcing a reconfiguration.
 
