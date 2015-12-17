@@ -33,8 +33,6 @@ MESSAGE_SIZE            = settings.simulations.communications.message_size
 ## Actor Programs
 ##########################################################################
 
-# blue, teal, cyan, navy, and sky
-
 class GreenActor(ActorProgram):
     """
     a node sends two messages; those two actors then send a fixed number of messages
@@ -60,13 +58,31 @@ class GreenActor(ActorProgram):
         else:
             return self.colors[index + 1]
 
+    def _handle_green(self, message):
+        for i in range(2):
+            msg = Message(None, None, 3, MESSAGE_SIZE, self.env.now, 'forest')
+            self.outbox.append(msg)
+
+    def _handle_forest(self, message):
+        if message.value > 1:
+            msg = Message(None, None, message.value - 1, MESSAGE_SIZE, self.env.now, 'forest')
+            self.outbox.append(msg)
+        else:
+            msg = Message(None, None, 1, MESSAGE_SIZE, self.env.now, 'seagreen')
+            self.outbox.append(msg)
+
+    def _handle_seagreen(self, message):
+        pass
+
     def handle(self, message):
         self.logger.info("ACTOR: ID: {}, WORKING ({})".format(self.id, message.color))
         yield self.env.timeout(0)
 
-        # add to outbox
-        color = self.next_color()
-        if color:
-            for i in range(random.randint(0, 2)):
-                msg = Message(None, None, 1, MESSAGE_SIZE, self.env.now, color)
-                self.outbox.append(msg)
+        color = message.color
+
+        if color == 'green':
+            self._handle_green(message)
+        elif color == 'forest':
+            self._handle_forest(message)
+        else:
+            self._handle_seagreen(message)
