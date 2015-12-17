@@ -41,15 +41,22 @@ class ActorManager(Process, LoggingMixin):
         """
         calls deactivate on unnescessary actors
         """
+        self.logger.info("MANAGER: ACTIVATIONS REQUESTED: {}".format(self.activations_requested))
+
+        # get a list of inactive programs
         inactive = self.filter(lambda a: not a.active)
 
-        self.logger.info(self.activations_requested)
-
-        for i in range(self.activations_requested):
+        # activate half of what was requested
+        for i in range(self.activations_requested / 2):
             actor = inactive[i]
             actor.activate()
 
+        # reset counter
         self.activations_requested = 0
+
+        # logging
+        count_inactive = len(self.filter(lambda a: not a.active))
+        self.logger.info("MANAGER: STATUS: COUNT OF INACTIVE: {}".format(count_inactive))
 
     def run(self):
         """
@@ -66,16 +73,14 @@ class ActorManager(Process, LoggingMixin):
             self.available = self.get_available_actors()
 
             for msg in queue:
-                if msg.sent < self.env.now:
+                # send messages if they are "old" enough
+                if msg.sent < self.env.now - 10:
                     self.route(msg)
                 else:
-                    # pass
                     self.queue.append(msg)
 
             # Send deactivate message to actors if needed
             self.balance()
-
-            self.logger.info("{}:{}".format(len(self.queue), len(queue)))
 
             yield self.env.timeout(1)
 
@@ -149,12 +154,15 @@ class ActorManager(Process, LoggingMixin):
 
                 # Mark actor as queued and send the message
                 actor.ready = False
+                self.logger.info("MANAGER: SENDING TO {}".format(actor.id))
                 return source.send(message)
 
             if not actor.active:
                 # request an activation by the balancer
+                self.logger.info("MANAGER: REQUESTING ACTIVATION")
                 self.activations_requested += 1
 
         # We could do nothing, so queue the message
+        self.logger.info("MANAGER: QUEUEING MESSAGE")
         message = message._replace(dst=None)
         self.queue.append(message)

@@ -23,6 +23,7 @@ from gvas.cluster.network import Message
 from gvas.base import Simulation, Process
 from gvas.cluster import create_default_cluster
 from gvas.actors import ActorProgram, ActorManager
+from gvas.utils.logger import LoggingMixin
 
 ##########################################################################
 ## Module Constants
@@ -39,7 +40,7 @@ SPIKE_DURATION   = settings.simulations.balance.spike_duration
 ## Data Generator (Stream)
 ##########################################################################
 
-class StreamingData(Process):
+class StreamingData(Process, LoggingMixin):
     """
     Generates data volume via the stream dynamo.
 
@@ -67,6 +68,7 @@ class StreamingData(Process):
         while True:
             volume = int(self.stream.next())
             if volume > 0:
+                self.logger.info("STREAM: NEW MESSAGES: {}".format(volume))
                 for idx in xrange(volume):
                     self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE, self.env.now))
 
@@ -77,7 +79,8 @@ class StreamingData(Process):
 class BalanceActor(ActorProgram):
 
     def handle(self, message):
-        pass
+        self.logger.info("ACTOR: ID: {}, WORKING".format(self.id))
+        yield self.env.timeout(1)
 
 ##########################################################################
 ## Load Balance Simulation
@@ -110,6 +113,7 @@ class BalanceSimulation(Simulation):
             self.diary.update('utilization', self.utilization)
             self.diary.update('backlog', self.backlog)
             self.diary.update('incoming', self.stream.last_volume)
+            self.diary.update('ready', self.ready)
             yield self.env.timeout(1)
 
     @property
@@ -125,6 +129,21 @@ class BalanceSimulation(Simulation):
             active += sum(1 for program in node.programs.itervalues() if program.active)
 
         return active
+        # return float(active) / float(nodes)
+
+    @property
+    def ready(self):
+        """
+        Returns the percent of nodes that are utilized
+        """
+        nodes  = 0
+        ready = 0
+
+        for node in self.cluster.nodes:
+            nodes  += node.cpus
+            ready += sum(1 for program in node.programs.itervalues() if program.ready)
+
+        return ready
         # return float(active) / float(nodes)
 
     @property
