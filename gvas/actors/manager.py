@@ -36,6 +36,12 @@ class ActorManager(Process, LoggingMixin):
         self.queue   = deque() # The message queue if there are no available actors
         super(ActorManager, self).__init__(env)
 
+    def balance(self):
+        """
+        calls deactivate on unnescessary actors
+        """
+        pass
+
     def run(self):
         """
         Go through the queue, attempting to assign queued messages to nodes.
@@ -51,6 +57,9 @@ class ActorManager(Process, LoggingMixin):
 
             for msg in queue:
                 self.route(msg)
+
+            # Send deactivate message to actors if needed
+            self.balance()
 
             yield self.env.timeout(1)
 
