@@ -23,9 +23,9 @@ import colorama
 
 from gvas.console.utils import color_format
 from gvas.console.commands.base import Command
+
 from gvas.sims import registry
 from gvas.exceptions import UnknownSimulation
-from gvas.utils.decorators import Timer
 
 ##########################################################################
 ## Command
@@ -37,14 +37,9 @@ class RunCommand(Command):
     help = "executes a given simulation"
 
     args = {
-        ('-v', '--verbose'): {
-            'action': 'count',
-            'default': 1,
-            'help': 'set the verbosity of the command',
-        },
         ('-o', '--output'): {
             'type': argparse.FileType('w'),
-            'default': sys.stdout,
+            'default': None,
             'metavar': 'PATH',
             'help': 'specify location to write output to'
         },
@@ -59,9 +54,6 @@ class RunCommand(Command):
         """
         Handle command line arguments
         """
-        # redirect output as requested
-        sys.stdout = args.output
-
         # determine requested simulation
         sname = args.name[0]
 
@@ -71,18 +63,13 @@ class RunCommand(Command):
 
         # instantiate requested simulation
         simulation = registry[sname].klass()
+        simulation.run()
 
-        # execute simulation and return results
-        with Timer() as timer:
-            simulation.run()
+        # Dump the output data to a file.
+        if args.output is None:
+            path = "{}-{}.json".format(sname, simulation.diary.get_finished().strftime("%Y%m%d"))
+            args.output = open(path, 'w')
+        simulation.diary.dump(args.output)
 
-        # return execution info
-        if args.verbose > 0:
-            return color_format(
-                '"{}" simulation completed in: {}',
-                colorama.Fore.CYAN,
-                sname,
-                timer
-            )
 
-        return ""
+        return "Results for {} simulation written to {}".format(sname, args.output.name)

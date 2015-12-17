@@ -57,6 +57,15 @@ docs/_build/
 # PyBuilder
 target/
 
+#LaTeX Ignores
+*.aux
+*.fdb_latexmk
+*.fls
+*.pdf
+*.synctex.gz
+*.bbl
+*.blg
+
 .DS_Store
 conf/gvas.yaml
 docs/slate

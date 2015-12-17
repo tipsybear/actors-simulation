@@ -65,21 +65,26 @@ class DefaultsConfiguration(SerializableConfiguration):
 
     class ClusterConfiguration(SerializableConfiguration):
         size = 2
-        node_count = 8
+        node_count = 64
 
     class RackConfiguration(SerializableConfiguration):
-        size = 96
+        size = 32
         egress_latency = 10
 
     class ProgramConfiguration(SerializableConfiguration):
         cpus = 1
         memory = 2
 
+    class ActorsConfiguration(SerializableConfiguration):
+        persistence_cost = 2
+
+
     network = NetworkConfiguration()
     cluster = ClusterConfiguration()
     rack = RackConfiguration()
     node = NodeConfiguration()
     program = ProgramConfiguration()
+    actors = ActorsConfiguration()
 
 
 class SimulationsConfiguration(SerializableConfiguration):
@@ -93,8 +98,46 @@ class SimulationsConfiguration(SerializableConfiguration):
         min_msg_value = 10
         max_msg_value = 50
 
-    simple = SimpleSimulationConfiguration()
+    class BalanceSimulationConfiguration(SerializableConfiguration):
 
+        volume_threshold = 100
+        message_size     = 128
+        spike_prob       = 0.05
+        spike_duration   = 15
+        spike_scale      = 5
+        message_mean     = 16
+        message_stddev   = 8
+        deactivation_buffer = 5
+        queue_lag           = 0
+
+    class CommnunicationsSimulationConfiguration(BalanceSimulationConfiguration):
+
+        initial_color = 'blue'
+
+    simple = SimpleSimulationConfiguration()
+    balance = BalanceSimulationConfiguration()
+    communications = CommnunicationsSimulationConfiguration()
+
+##########################################################################
+## Logging Configuration
+##########################################################################
+
+class LoggingConfiguration(Configuration):
+    """
+    Very specific logging configuration instructions (does not provide the
+    complete configuration as available in the python logging module). See
+    the `gvas.utils.logger` module for more info.
+    """
+
+    level   = "INFO"
+    logfmt  = "[%(time)5d] %(message)s"
+    datefmt = "%Y-%m-%dT%H:%M:%S%z"
+    disable_existing_loggers = False
+
+
+##########################################################################
+## Application Configuration
+##########################################################################
 
 class GVASSimulationConfiguration(Configuration):
 
@@ -106,7 +149,7 @@ class GVASSimulationConfiguration(Configuration):
     ]
 
     debug         = False
-    testing       = True
+    testing       = False
 
     # Visualization parameters
     vizualization = VisualizationConfiguration()
@@ -115,9 +158,15 @@ class GVASSimulationConfiguration(Configuration):
     random_seed   = 42
     max_sim_time  = 1000
 
-    defaults = DefaultsConfiguration()
-    simulations = SimulationsConfiguration()
+    # Logging parameters
+    logging       = LoggingConfiguration()
 
+    defaults      = DefaultsConfiguration()
+    simulations   = SimulationsConfiguration()
+
+##########################################################################
+## Construct settings for use in the library.
+##########################################################################
 
 settings = GVASSimulationConfiguration.load()
 

@@ -19,6 +19,7 @@ Simulation class to model a program run within a Node instance.
 
 from gvas.config import settings
 from gvas.base import NamedProcess
+from .network import Address
 
 ##########################################################################
 # Classes
@@ -29,7 +30,7 @@ class Program(NamedProcess):
     def __init__(self, env, *args, **kwargs):
         self.cpus = kwargs.pop('cpus', settings.defaults.program.cpus)
         self.memory = kwargs.pop('memory', settings.defaults.program.memory)
-        self.ports = kwargs.pop('ports', [])
+        self.ports = set(kwargs.pop('ports', []))
         self.node = kwargs.pop('node', None)
         super(Program, self).__init__(env, *args, **kwargs)
 
@@ -42,9 +43,6 @@ class Program(NamedProcess):
         while True:
             yield cls(env, *args, **kwargs)
 
-    def random_node(self):
-        cluster = self.node.rack.cluster
-
     @property
     def id(self):
         """
@@ -54,6 +52,13 @@ class Program(NamedProcess):
         ancestor class and so all subclasses may share the same Sequence.
         """
         return self._id
+
+    @property
+    def address(self):
+        """
+        Returns the address for this program, specializing to the first port.
+        """
+        return self.node.address._replace(port=next(iter(self.ports)), pid=self.id)
 
     def __str__(self):
         return "Program: id: {}, cpus={},  memory={}".format(

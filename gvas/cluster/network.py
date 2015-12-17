@@ -22,9 +22,14 @@ import simpy
 from gvas.config import settings
 from gvas.exceptions import BandwidthExceeded
 
+from collections import namedtuple
+
 ##########################################################################
 # Classes
 ##########################################################################
+
+Message = namedtuple('Message', 'src, dst, value, size, sent, color')
+Address = namedtuple('Address', 'rack, node, port, pid')
 
 
 class Network(object):
@@ -92,7 +97,15 @@ class Network(object):
         bandwidth.
         """
         delay = 100 - int(float(self.bandwidth) / float(self.capacity) * 100)
-        return self.base_latency + delay
+        return self.base_latency #+ delay
+
+    @property
+    def traffic(self):
+        """
+        Returns the total size of messages on the network (opposite of
+        bandwidth, e.g. the used bandwidth of the network).
+        """
+        return self.capacity - self.bandwidth
 
     def __str__(self):
         return "Network: capacity={},  bandwidth={}, base_latency={}, latency={}".format(
