@@ -57,7 +57,8 @@ class ActorManager(Process, LoggingMixin):
             inactive = self.filter(lambda a: not a.active)
 
             # activate half of what was requested
-            for i in range(self.activations_requested / 2):
+            total = self.activations_requested / 2
+            for i in range(min(len(inactive), total)):
                 actor = inactive[i]
                 actor.activate()
 
