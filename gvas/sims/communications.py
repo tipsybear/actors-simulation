@@ -1,13 +1,13 @@
 # gvas.sims.comuunications
 # A simulation that can model different communication patterns.
 #
-# Author:   Benjamin Bengfort <bengfort@cs.umd.edu>
-# Created:  Wed Dec 09 22:23:07 2015 -0500
+# Author:   Allen Leis <allen.leis@gmail.com>
+# Created:  Thu Dec 17 01:37:35 2015 -0500
 #
-# Copyright (C) 2015 University of Maryland
+# Copyright (C) 2015 Allen Leis
 # For license information, see LICENSE.txt
 #
-# ID: communications.py [] benjamin@bengfort.com $
+# ID: communications.py [] allen.leis@gmail.com $
 
 """
 A simulation that can model different communication patterns.
@@ -22,7 +22,7 @@ from gvas.dynamo import Stream, Normal
 from gvas.cluster.network import Message
 from gvas.base import Simulation, Process
 from gvas.cluster import create_default_cluster
-# from gvas.actors import ActorProgram, ActorManager
+from gvas.actors import BlueActor, ActorManager
 from gvas.utils.logger import LoggingMixin
 from .balance import BalanceSimulation
 
@@ -79,7 +79,27 @@ class StreamingData(Process, LoggingMixin):
 ## Load Balance Simulation
 ##########################################################################
 
-
-
 class CommunicationsSimulation(BalanceSimulation):
-    pass
+
+    def instrument(self):
+        """
+        A side process that records the state of the cluster at every step.
+        """
+        while True:
+            self.diary.update('utilization', self.utilization)
+            self.diary.update('backlog', self.backlog)
+            self.diary.update('incoming', self.stream.last_volume)
+            yield self.env.timeout(1)
+
+    def script(self):
+        """
+        Constructs the load balancing script for the simulation.
+        """
+        self.manager = ActorManager(self.env, self.cluster)
+        self.stream  = StreamingData(self.env, self.manager)
+
+        # Create actor programs for every node in the cluster.
+        for node in self.cluster.nodes:
+            for idx in xrange(node.cpus):
+                program = BlueActor(self.env, self.manager, ports=[idx+10, idx+20])
+                node.assign(program)

@@ -53,6 +53,6 @@ registry = {
     'communications': Simulation(
         'communications',
         'A simulation that can model different communication patterns.',
-        BalanceSimulation
+        CommunicationsSimulation
     )
 }
