@@ -36,6 +36,7 @@ MESSAGE_STDDEV   = settings.simulations.communications.message_stddev
 SPIKE_SCALE      = settings.simulations.communications.spike_scale
 SPIKE_PROBABILTY = settings.simulations.communications.spike_prob
 SPIKE_DURATION   = settings.simulations.communications.spike_duration
+INITIAL_COLOR    = settings.simulations.communications.initial_color
 
 ##########################################################################
 ## Data Generator (Stream)
@@ -44,8 +45,6 @@ SPIKE_DURATION   = settings.simulations.communications.spike_duration
 class StreamingData(Process, LoggingMixin):
     """
     Generates data volume via the stream dynamo.
-
-    TODO: Move out of simulation to a helper module.
     """
 
     def __init__(self, env, service, **kwargs):
@@ -71,7 +70,7 @@ class StreamingData(Process, LoggingMixin):
             if volume > 0:
                 self.logger.info("STREAM: NEW MESSAGES: {}".format(volume))
                 for idx in xrange(volume):
-                    self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE, self.env.now))
+                    self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE, self.env.now, INITIAL_COLOR))
 
             self.last_volume = volume
             yield self.env.timeout(1)
