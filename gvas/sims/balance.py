@@ -70,7 +70,7 @@ class StreamingData(Process, LoggingMixin):
             if volume > 0:
                 self.logger.info("STREAM: NEW MESSAGES: {}".format(volume))
                 for idx in xrange(volume):
-                    self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE, self.env.now))
+                    self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE, self.env.now, None))
 
             self.last_volume = volume
             yield self.env.timeout(1)

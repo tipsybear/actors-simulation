@@ -22,6 +22,7 @@ from collections import namedtuple
 from .cars import GasStationSimulation
 from .simple import SimpleSimulation
 from .balance import BalanceSimulation
+from .communications import CommunicationsSimulation
 
 ##########################################################################
 ## Classes
@@ -48,5 +49,10 @@ registry = {
         'balance',
         'A load balancing simulation with the actor model.',
         BalanceSimulation
+    ),
+    'communications': Simulation(
+        'communications',
+        'A simulation that can model different communication patterns.',
+        CommunicationsSimulation
     )
 }

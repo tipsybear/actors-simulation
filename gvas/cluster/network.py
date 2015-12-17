@@ -28,7 +28,7 @@ from collections import namedtuple
 # Classes
 ##########################################################################
 
-Message = namedtuple('Message', 'src, dst, value, size, sent')
+Message = namedtuple('Message', 'src, dst, value, size, sent, color')
 Address = namedtuple('Address', 'rack, node, port, pid')
 
 

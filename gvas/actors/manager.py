@@ -17,6 +17,8 @@ Service for generalized actors, performs load balancing and maintains stage.
 ## Imports
 ##########################################################################
 
+from collections import defaultdict
+
 from gvas.base import Process
 from gvas.config import settings
 from gvas.utils.logger import LoggingMixin
@@ -203,5 +205,105 @@ class ActorManager(Process, LoggingMixin):
 
         # We could do nothing, so queue the message
         self.logger.info("MANAGER: QUEUEING MESSAGE")
+        message = message._replace(dst=None)
+        self.queue.append(message)
+
+
+class CommunicationsManager(ActorManager):
+
+    def __init__(self, env, cluster):
+        super(CommunicationsManager, self).__init__(env, cluster)
+        self.activations_requested = defaultdict(int)
+
+    def _balance_up(self):
+        """
+        Switches ready actors to required colors and then activates any that
+        are still needed
+        """
+        count = 0
+        self.logger.info("BALANCE UP")
+        if self.activations_requested:
+            # query for ready but may not be correct color
+            ready = self.filter(lambda a: a.active and a.ready)
+
+            # query for inactive
+            inactive = self.filter(lambda a: not a.active)
+
+            # loop through requested activations by color
+            for color, amount in self.activations_requested.iteritems():
+                for i in range(amount):
+                    if ready:
+                        actor = ready.pop()
+                        actor.color = color
+                        self.logger.info("MANAGER: SWITCHING COLORS: {} ({})".format(actor.id, color))
+                    elif inactive:
+                        # only activate every other request
+                        count += 1
+                        # if count % 2 == 0:
+                        if True:
+                            actor = inactive.pop()
+                            actor.color = color
+                            self.logger.info("MANAGER: ACTIVATING: {} ({})".format(actor.id, color))
+                            actor.activate()
+
+            # reset counter
+            self.activations_requested = defaultdict(int)
+
+    def get_available_actor(self, color):
+        """
+        Select the next available actor in the cluster
+        """
+        # Phase one: look for an active and ready actor
+        for actor in self.filter(lambda a: a.active and a.ready and a.color == color):
+            return actor
+
+        # Otherwise we need to activate an actor
+        for actor in self.filter(lambda a: not a.active):
+            return actor
+
+        # No actors are available at all!
+        return None
+
+    def route(self, message):
+        """
+        Basic actor manager route method. If the message has a destination
+        address, then the manager attempts to send the message to the node.
+        If the node is not active, it activates it, then sends the message
+        when the node is hydrated (and queues it until then).
+        """
+        self.route_count += 1
+
+        # Find an available actor
+        if message.dst is None:
+            actor = self.get_available_actor(message.color)
+            if actor is not None:
+                message = message._replace(dst=actor.address)
+
+        # attempt to send the message
+        if message.dst is not None:
+            actor = self.lookup(message.dst)
+
+            if actor is None: raise Exception(message.dst)
+
+            if actor.active and actor.ready:
+                # send the message!
+                if message.src is not None:
+                    source = self.cluster.racks[message.src.rack]
+                    source = source.nodes[message.src.node]
+                else:
+                    source = self.cluster.racks[message.dst.rack]
+
+                # Mark actor as queued and send the message
+                actor.ready = False
+                self.logger.info("MANAGER: SENDING TO {} ({})".format(actor.id, message.color))
+                return source.send(message)
+
+            if not actor.active:
+                # request an activation by the balancer
+                self.logger.info("MANAGER: REQUESTING ACTIVATION")
+                self.activations_requested[message.color] += 1
+
+        # We could do nothing, so queue the message
+        self.logger.info("MANAGER: QUEUEING MESSAGE ({})".format(message.color))
         message = message._replace(dst=None)
         self.queue.append(message)

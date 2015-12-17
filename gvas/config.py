@@ -110,8 +110,13 @@ class SimulationsConfiguration(SerializableConfiguration):
         deactivation_buffer = 5
         queue_lag           = 0
 
+    class CommnunicationsSimulationConfiguration(BalanceSimulationConfiguration):
+
+        initial_color = 'blue'
+
     simple = SimpleSimulationConfiguration()
     balance = BalanceSimulationConfiguration()
+    communications = CommnunicationsSimulationConfiguration()
 
 ##########################################################################
 ## Logging Configuration

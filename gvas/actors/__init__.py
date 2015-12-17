@@ -18,4 +18,7 @@ Provides framework utilities for simulating actor-based computation
 ##########################################################################
 
 from .base import ActorProgram
-from .manager import ActorManager
+from .manager import ActorManager, CommunicationsManager
+from .blue import *
+from .green import *
+from .red import *
