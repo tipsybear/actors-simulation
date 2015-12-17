@@ -19,6 +19,7 @@ The base actors program for simulating actor behavor on the cluster.
 
 from gvas.cluster import Program
 from gvas.config import settings
+from gvas.utils.logger import LoggingMixin
 
 ##########################################################################
 ## Actor simulation configuration
@@ -31,7 +32,7 @@ PERSISTENCE_COST = settings.defaults.actors.persistence_cost
 ## Actor Program
 ##########################################################################
 
-class ActorProgram(Program):
+class ActorProgram(Program, LoggingMixin):
     """
     An actor simulation is composed of one more more actor programs, whose
     class defines a method of actor operation, and where multiple instances
@@ -71,6 +72,7 @@ class ActorProgram(Program):
         """
         On activation hydrate the actor to start listening for messages.
         """
+        self.logger.info("ACTOR: ID: {}, ACTIVATING".format(self.id))
         self.active  = True
         self.hydrate.succeed()
         self.hydrate = None
@@ -79,6 +81,7 @@ class ActorProgram(Program):
         """
         On deactivation, dehydrate the actor to stop listening for messages.
         """
+        self.logger.info("ACTOR: ID: {}, DEACTIVATING".format(self.id))
         self.active  = False
         self.hydrate = self.env.event()
         yield self.hydrate
@@ -87,9 +90,11 @@ class ActorProgram(Program):
         """
         Listen for an incomming message
         """
+        self.logger.info("ACTOR: ID: {}, LISTENING".format(self.id))
         self.ready = True
         self.message = self.env.event()
-        yield self.message
+        value = yield self.message
+        self.env.exit(value)
 
     def is_listening(self):
         """
@@ -114,8 +119,9 @@ class ActorProgram(Program):
         """
         Called on receipt of a message from the node.
         """
+        self.logger.info("ACTOR: ID: {}, RECV".format(self.id))
         self.ready = False
-        self.message.succeed()
+        self.message.succeed(value)
         self.message = None
         self.handle(value)
 
@@ -133,7 +139,8 @@ class ActorProgram(Program):
 
             else:
                 # Listen for a message
-                yield self.env.process(self.listen())
+                message = yield self.env.process(self.listen())
+                yield self.env.process(self.handle(message))
 
                 # Process the messages in the outbox
                 for msg in self.outbox:

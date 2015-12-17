@@ -18,9 +18,16 @@ Service for generalized actors, performs load balancing and maintains stage.
 ##########################################################################
 
 from gvas.base import Process
+from gvas.config import settings
 from gvas.utils.logger import LoggingMixin
 
 from collections import deque
+
+##########################################################################
+## Module Constants
+##########################################################################
+
+DEACTIVATION_BUFFER     = settings.simulations.balance.deactivation_buffer
 
 ##########################################################################
 ## Actor Manager
@@ -32,15 +39,67 @@ class ActorManager(Process, LoggingMixin):
     """
 
     def __init__(self, env, cluster):
-        self.cluster = cluster # The actor manager is a master process on the cluster
-        self.queue   = deque() # The message queue if there are no available actors
+        self.activations_requested = 0
+        self.route_count = 0
+        self.cluster = cluster  # The actor manager is a master process on the cluster
+        self.queue   = deque()  # The message queue if there are no available actors
         super(ActorManager, self).__init__(env)
+
+    def _balance_up(self):
+        """
+        Activates inactive actors
+        """
+        self.logger.info("MANAGER: ACTIVATIONS REQUESTED: {}".format(self.activations_requested))
+
+        if self.activations_requested:
+            # get a list of inactive programs
+            inactive = self.filter(lambda a: not a.active)
+
+            # activate half of what was requested
+            for i in range(self.activations_requested / 2):
+                actor = inactive[i]
+                actor.activate()
+
+            # reset counter
+            self.activations_requested = 0
+
+    def _balance_down(self):
+        """
+        Deactivates active actors
+
+        if the queue is empty; deactivate actors that haven't been routed to,
+        less the number of routes we had this timestep + some buffer (like 5 maybe)
+        """
+        self.logger.info("MANAGER: DEACTIVATION PHASE".format())
+
+        self.logger.info(len(self.queue))
+        if not self.queue:
+            ready = self.filter(lambda a: a.ready)
+            ready_count = len(ready)
+            total_to_deactivate = ready_count - self.route_count + DEACTIVATION_BUFFER
+
+            self.logger.info("MANAGER: DEACTIVATING {}".format(min(total_to_deactivate, ready_count)))
+            for i in range(min(total_to_deactivate, ready_count)):
+                self.env.process(ready[i].deactivate())
+
+        self.route_count = 0
+
+    def balance(self):
+        """
+        Attempts to activate or deactivate the number of actors as needed.
+        """
+        # activate/deactivate actors as needed
+        if self.activations_requested:
+            self._balance_up()
+        else:
+            self._balance_down()
 
     def run(self):
         """
         Go through the queue, attempting to assign queued messages to nodes.
         """
         while True:
+
             # Create temporary queue
             self.queue.reverse()
             queue = list(self.queue)
@@ -50,9 +109,17 @@ class ActorManager(Process, LoggingMixin):
             self.available = self.get_available_actors()
 
             for msg in queue:
-                self.route(msg)
+                # send messages if they are "old" enough
+                if msg.sent < self.env.now - 10:
+                    self.route(msg)
+                else:
+                    self.queue.append(msg)
+
+            # Send deactivate message to actors if needed
+            self.balance()
 
             yield self.env.timeout(1)
+
 
     def lookup(self, address):
         """
@@ -100,6 +167,7 @@ class ActorManager(Process, LoggingMixin):
         If the node is not active, it activates it, then sends the message
         when the node is hydrated (and queues it until then).
         """
+        self.route_count += 1
 
         # Find an available actor
         if message.dst is None:
@@ -110,7 +178,9 @@ class ActorManager(Process, LoggingMixin):
         # attempt to send the message
         if message.dst is not None:
             actor = self.lookup(message.dst)
+
             if actor is None: raise Exception(message.dst)
+
             if actor.active and actor.ready:
                 # send the message!
                 if message.src is not None:
@@ -120,15 +190,16 @@ class ActorManager(Process, LoggingMixin):
                     source = self.cluster.racks[message.dst.rack]
 
                 # Mark actor as queued and send the message
-                # If you comment out the below lines, then the streaming data
-                # service doesn't stall. What's going on here?
                 actor.ready = False
+                self.logger.info("MANAGER: SENDING TO {}".format(actor.id))
                 return source.send(message)
 
             if not actor.active:
-                # activate the actor!
-                actor.activate()
+                # request an activation by the balancer
+                self.logger.info("MANAGER: REQUESTING ACTIVATION")
+                self.activations_requested += 1
 
         # We could do nothing, so queue the message
+        self.logger.info("MANAGER: QUEUEING MESSAGE")
         message = message._replace(dst=None)
         self.queue.append(message)
