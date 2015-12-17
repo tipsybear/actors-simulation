@@ -106,12 +106,16 @@ Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
     \label{fig:architecture}
 \end{figure}
 
-The main source of inspiration for this work was the Orleans framework for building distributed applications. We believe Orleans' focus on \textit{programmability} and \textit{scalability} resonates with today's needs for ever-demanding large-scale distributed applications that need to be able to easily and continuously scale horizontally. The Orleans  framework defines a model based on a modernized variation of the actor model, known as a \textit{Virtual Actor Space}. In essence, a Virtual Actor Space consists of a set of virtual memory addresses, that can arbitrarily be used
-- Orleans was inspired by and is a modern outlook on the traditional actor model.
-- Basic idea: Virtual actors are logical entities that always exist. Actors have activations, and an activation can be spawned anywhere in the system. Actors are either stateful (only one activation at a time) or stateless (unboundedly scalable).
-- Meant as a framework for easily and  intuitively programming distributed systems.
+The main source of inspiration for this work was the Orleans framework for building distributed applications \cite{bernstein_orleans:_2014}. We believe Orleans' focus on \textit{programmability} and \textit{scalability} resonates with today's needs for ever-demanding large-scale distributed applications that need to be able to easily and continuously scale horizontally. The Orleans  framework defines a model based on a modernized variation of the actor model, known as a \textit{Virtual Actor Space}. In essence, a Virtual Actor Space consists of a global virtual address space, implemented as a distributed hash table that is used to for load balancing actor instantiations, dealing with fault tolerance as well as maintaining high levels of availability across the board of usable nodes in the clusters.
 
-Orleans \cite{bernstein_orleans:_????}
+The core high-level ideas in Orleans that enhance its ``programmability'' lie in the fact that actors are defined as virtual entities. \textit{Actors can never be explicitly created or destroyed}. An actor entity has \textit{activations} that get instantiated inside the system. If therefore something goes wrong and an actor becomes unavailable (e.g. because the host machine crashed), as soon as a message intended for the specific actor activation is sent, the activation automatically becomes instantiated on a different machine and computation continues normally. The beauty in this method is that it does not require the programmer to worry about any of this; the user only needs to define the actors and their behavior and just let the system run. Activations of actors can be either \textit{stateless} or \textit{stateful}. Stateless actors can be activated in indefinitely many nodes as needed for maximum concurrency. Only one activation per stateful actor is allowed however.
+
+Recently, Orleans has also included specialized functionality for dealing with streams \cite{orleans_streams}; however this is simply an extension which holds true to the orleans architecture geared towards distributed applications that incorporate streams of events. We believe that a \textit{generalization} of this virtualization layer can help sufficiently abstract distributed systems details, while using and extending the above ideas towards a general  system for distributed computation. Our vision is a system where users define their computation as actors and actor behavior using the standard building blocks defined by the traditional actor model, while also including a Virtual Actor Space for abstracting away all distributed systems details and thus allowing for effortless and scalable analytics.
+
+% Our hypothesis is that generalizing the above
+% - Orleans was inspired by and is a modern outlook on the traditional actor model.
+% - Basic idea: Virtual actors are logical entities that always exist. Actors have activations, and an activation can be spawned anywhere in the system. Actors are either stageful (only one activation at a time) or stateless (unboundedly scalable).
+% - Meant as a framework for easily and  intuitively programming distributed systems.
 
 
 
