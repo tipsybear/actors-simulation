@@ -81,6 +81,7 @@ class ActorProgram(Program, LoggingMixin):
         """
         On deactivation, dehydrate the actor to stop listening for messages.
         """
+        self.logger.info("ACTOR: ID: {}, DEACTIVATING".format(self.id))
         self.active  = False
         self.hydrate = self.env.event()
         yield self.hydrate

@@ -113,7 +113,7 @@ class BalanceSimulation(Simulation):
             self.diary.update('utilization', self.utilization)
             self.diary.update('backlog', self.backlog)
             self.diary.update('incoming', self.stream.last_volume)
-            self.diary.update('ready', self.ready)
+            # self.diary.update('ready', self.ready)
             yield self.env.timeout(1)
 
     @property

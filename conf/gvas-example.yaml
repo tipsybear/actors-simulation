@@ -76,4 +76,11 @@ simulations:
     balance:
 
         # hueristic for when to add new nodes
-        volume_threshold: 100
+        message_mean: 10
+        message_size: 128
+        message_stddev: 3
+        spike_duration: 4
+        spike_prob: 0.05
+        spike_scale: 3
+        volume_threshold: 5
+        deactivation_buffer: 5

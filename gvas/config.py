@@ -107,7 +107,8 @@ class SimulationsConfiguration(SerializableConfiguration):
         spike_scale      = 5
         message_mean     = 16
         message_stddev   = 8
-
+        deactivation_buffer = 5
+        
     simple = SimpleSimulationConfiguration()
     balance = BalanceSimulationConfiguration()
 

@@ -18,9 +18,16 @@ Service for generalized actors, performs load balancing and maintains stage.
 ##########################################################################
 
 from gvas.base import Process
+from gvas.config import settings
 from gvas.utils.logger import LoggingMixin
 
 from collections import deque
+
+##########################################################################
+## Module Constants
+##########################################################################
+
+DEACTIVATION_BUFFER     = settings.simulations.balance.deactivation_buffer
 
 ##########################################################################
 ## Actor Manager
@@ -33,30 +40,59 @@ class ActorManager(Process, LoggingMixin):
 
     def __init__(self, env, cluster):
         self.activations_requested = 0
-        self.cluster = cluster # The actor manager is a master process on the cluster
-        self.queue   = deque() # The message queue if there are no available actors
+        self.route_count = 0
+        self.cluster = cluster  # The actor manager is a master process on the cluster
+        self.queue   = deque()  # The message queue if there are no available actors
         super(ActorManager, self).__init__(env)
 
-    def balance(self):
+    def _balance_up(self):
         """
-        calls deactivate on unnescessary actors
+        Activates inactive actors
         """
         self.logger.info("MANAGER: ACTIVATIONS REQUESTED: {}".format(self.activations_requested))
 
-        # get a list of inactive programs
-        inactive = self.filter(lambda a: not a.active)
+        if self.activations_requested:
+            # get a list of inactive programs
+            inactive = self.filter(lambda a: not a.active)
 
-        # activate half of what was requested
-        for i in range(self.activations_requested / 2):
-            actor = inactive[i]
-            actor.activate()
+            # activate half of what was requested
+            for i in range(self.activations_requested / 2):
+                actor = inactive[i]
+                actor.activate()
 
-        # reset counter
-        self.activations_requested = 0
+            # reset counter
+            self.activations_requested = 0
 
-        # logging
-        count_inactive = len(self.filter(lambda a: not a.active))
-        self.logger.info("MANAGER: STATUS: COUNT OF INACTIVE: {}".format(count_inactive))
+    def _balance_down(self):
+        """
+        Deactivates active actors
+
+        if the queue is empty; deactivate actors that haven't been routed to,
+        less the number of routes we had this timestep + some buffer (like 5 maybe)
+        """
+        self.logger.info("MANAGER: DEACTIVATION PHASE".format())
+
+        self.logger.info(len(self.queue))
+        if not self.queue:
+            ready = self.filter(lambda a: a.ready)
+            ready_count = len(ready)
+            total_to_deactivate = ready_count - self.route_count + DEACTIVATION_BUFFER
+
+            self.logger.info("MANAGER: DEACTIVATING {}".format(min(total_to_deactivate, ready_count)))
+            for i in range(min(total_to_deactivate, ready_count)):
+                self.env.process(ready[i].deactivate())
+
+        self.route_count = 0
+
+    def balance(self):
+        """
+        Attempts to activate or deactivate the number of actors as needed.
+        """
+        # activate/deactivate actors as needed
+        if self.activations_requested:
+            self._balance_up()
+        else:
+            self._balance_down()
 
     def run(self):
         """
@@ -131,6 +167,7 @@ class ActorManager(Process, LoggingMixin):
         If the node is not active, it activates it, then sends the message
         when the node is hydrated (and queues it until then).
         """
+        self.route_count += 1
 
         # Find an available actor
         if message.dst is None:
