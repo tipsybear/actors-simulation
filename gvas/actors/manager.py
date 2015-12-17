@@ -221,7 +221,7 @@ class CommunicationsManager(ActorManager):
         are still needed
         """
         count = 0
-        self.logger.info("MOO")
+        self.logger.info("BALANCE UP")
         if self.activations_requested:
             # query for ready but may not be correct color
             ready = self.filter(lambda a: a.active and a.ready)
@@ -235,12 +235,15 @@ class CommunicationsManager(ActorManager):
                     if ready:
                         actor = ready.pop()
                         actor.color = color
+                        self.logger.info("MANAGER: SWITCHING COLORS: {} ({})".format(actor.id, color))
                     elif inactive:
                         # only activate every other request
                         count += 1
-                        if count % 2 == 0:
+                        # if count % 2 == 0:
+                        if True:
                             actor = inactive.pop()
                             actor.color = color
+                            self.logger.info("MANAGER: ACTIVATING: {} ({})".format(actor.id, color))
                             actor.activate()
 
             # reset counter
@@ -292,7 +295,7 @@ class CommunicationsManager(ActorManager):
 
                 # Mark actor as queued and send the message
                 actor.ready = False
-                self.logger.info("MANAGER: SENDING TO {}".format(actor.id))
+                self.logger.info("MANAGER: SENDING TO {} ({})".format(actor.id, message.color))
                 return source.send(message)
 
             if not actor.active:
@@ -301,6 +304,6 @@ class CommunicationsManager(ActorManager):
                 self.activations_requested[message.color] += 1
 
         # We could do nothing, so queue the message
-        self.logger.info("MANAGER: QUEUEING MESSAGE")
+        self.logger.info("MANAGER: QUEUEING MESSAGE ({})".format(message.color))
         message = message._replace(dst=None)
         self.queue.append(message)
