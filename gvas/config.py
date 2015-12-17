@@ -108,7 +108,8 @@ class SimulationsConfiguration(SerializableConfiguration):
         message_mean     = 16
         message_stddev   = 8
         deactivation_buffer = 5
-        
+        queue_lag           = 0
+
     simple = SimpleSimulationConfiguration()
     balance = BalanceSimulationConfiguration()
 
