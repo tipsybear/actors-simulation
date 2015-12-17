@@ -32,6 +32,7 @@ class ActorManager(Process, LoggingMixin):
     """
 
     def __init__(self, env, cluster):
+        self.activations_requested = 0
         self.cluster = cluster # The actor manager is a master process on the cluster
         self.queue   = deque() # The message queue if there are no available actors
         super(ActorManager, self).__init__(env)
@@ -40,13 +41,22 @@ class ActorManager(Process, LoggingMixin):
         """
         calls deactivate on unnescessary actors
         """
-        pass
+        inactive = self.filter(lambda a: not a.active)
+
+        self.logger.info(self.activations_requested)
+
+        for i in range(self.activations_requested):
+            actor = inactive[i]
+            actor.activate()
+
+        self.activations_requested = 0
 
     def run(self):
         """
         Go through the queue, attempting to assign queued messages to nodes.
         """
         while True:
+
             # Create temporary queue
             self.queue.reverse()
             queue = list(self.queue)
@@ -58,11 +68,17 @@ class ActorManager(Process, LoggingMixin):
             for msg in queue:
                 if msg.sent < self.env.now:
                     self.route(msg)
+                else:
+                    # pass
+                    self.queue.append(msg)
 
             # Send deactivate message to actors if needed
             self.balance()
 
+            self.logger.info("{}:{}".format(len(self.queue), len(queue)))
+
             yield self.env.timeout(1)
+
 
     def lookup(self, address):
         """
@@ -120,7 +136,9 @@ class ActorManager(Process, LoggingMixin):
         # attempt to send the message
         if message.dst is not None:
             actor = self.lookup(message.dst)
+
             if actor is None: raise Exception(message.dst)
+
             if actor.active and actor.ready:
                 # send the message!
                 if message.src is not None:
@@ -130,14 +148,12 @@ class ActorManager(Process, LoggingMixin):
                     source = self.cluster.racks[message.dst.rack]
 
                 # Mark actor as queued and send the message
-                # If you comment out the below lines, then the streaming data
-                # service doesn't stall. What's going on here?
                 actor.ready = False
                 return source.send(message)
 
             if not actor.active:
-                # activate the actor!
-                actor.activate()
+                # request an activation by the balancer
+                self.activations_requested += 1
 
         # We could do nothing, so queue the message
         message = message._replace(dst=None)
