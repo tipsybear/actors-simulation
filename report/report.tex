@@ -74,7 +74,7 @@ Because of the widespread adoption of distributed computing frameworks like MapR
 
 As a result, tools for dealing with \textit{streaming data} (unbounded, unordered, variable data sources) have mostly been contextualized similarly to parallel machine learning algorithms -- via descriptions of how data flows through the application. Tools like Spark Streaming \cite{zaharia_discretized_2012}, Storm \cite{toshniwal_storm_2014}, and Google DataFlow \cite{akidau_dataflow_2015} implement a \textit{data flow} programming model, where analysis is described as a directed graph whose nodes represent a single computation, and whose edges represent the transmission of input and output values. Describing computation this way is simple, adaptable, and when mapped to a distributed topology, scalable. However, this model does not allow nodes to \textit{communicate}, nor does it provide any flexibility in the computational topology for error handling, transactional guarantees, consistency, or persistence.
 
-In response to this inflexibility of the data flow model, the \textit{actor model} \cite{hewitt_viewing_1977, agha_actors:_1985} has been re-emerging as an abstraction that allows for more versatility in communication between distributed processes while still being at a high enough level to abstract the details of communication within the cluster away from the programmer. Ironically, it is this model that underpins the more general data flow models \cite{gonzalez_asynchronous_2015}, perhaps due to the fact that these applications are implemented in the Scala programming language, which by default uses actors for concurrency \cite{haller_scala_2009,karmani_actor_2009}. Actors in this context are high level primitives that do not share state, making them ideal candidates for under-the-hood parallelism. However, a simple data structure alone is not enough for a distributed computing; there must also be an execution and job management context. Orleans \cite{bernstein_orleans:_????} presents the idea of a ``virtual actor space'', analogous to virtual memory, such that actor activations (e.g. instances of a program) exist forever, are transparent to their locale, and are automatically instantiated and deactivated. Virtual actors therefore provide for automatic scaling and load balancing in the cluster, and we believe are a novel and suitable alternative to the data flow model in the context of online, streaming computation.
+In response to this inflexibility of the data flow model, the \textit{actor model} \cite{hewitt_viewing_1977, agha_actors:_1985} has been re-emerging as an abstraction that allows for more versatility in communication between distributed processes while still being at a high enough level to abstract the details of communication within the cluster away from the programmer. Ironically, it is this model that underpins the more general data flow models \cite{gonzalez_asynchronous_2015}, perhaps due to the fact that these applications are implemented in the Scala programming language, which by default uses actors for concurrency \cite{haller_scala_2009,karmani_actor_2009}. Actors in this context are high level primitives that do not share state, making them ideal candidates for under-the-hood parallelism. However, a simple data structure alone is not enough for a distributed computing; there must also be an execution and job management context. Orleans \cite{bernstein_orleans:_2014} presents the idea of a ``virtual actor space'', analogous to virtual memory, such that actor activations (e.g. instances of a program) exist forever, are transparent to their locale, and are automatically instantiated and deactivated. Virtual actors therefore provide for automatic scaling and load balancing in the cluster, and we believe are a novel and suitable alternative to the data flow model in the context of online, streaming computation.
 
 In this paper we investigate the potential of virtual actors for distributed computing on streaming data by simulating a computing cluster which implements a \textit{generalized virtual actor space}. A generalized virtual actor space replaces the programing model of virtual actors with a daemon service that runs in the background of all nodes in the cluster; allocating resources to a variety of actor programs in an on-demand fashion such that the resources can scale as variability of data streams changes, while balancing load across many ``always on'' computations that must share resources. We have simulated this framework by analyzing the communications patterns of three real-time applications: a traditional data flow, an online recommendation application, and a solar weather forecasting application. We then present an analysis of how the virtual actor model behaved in simulation on the cluster and show that this model is a suitable substitute for the data flow model.
 
@@ -106,12 +106,16 @@ Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
     \label{fig:architecture}
 \end{figure}
 
-The main source of inspiration for this work was the Orleans framework for building distributed applications. We believe Orleans' focus on \textit{programmability} and \textit{scalability} resonates with today's needs for ever-demanding large-scale distributed applications that need to be able to easily and continuously scale horizontally. The Orleans  framework defines a model based on a modernized variation of the actor model, known as a \textit{Virtual Actor Space}. In essence, a Virtual Actor Space consists of a set of virtual memory addresses, that can arbitrarily be used
-- Orleans was inspired by and is a modern outlook on the traditional actor model.
-- Basic idea: Virtual actors are logical entities that always exist. Actors have activations, and an activation can be spawned anywhere in the system. Actors are either stateful (only one activation at a time) or stateless (unboundedly scalable).
-- Meant as a framework for easily and  intuitively programming distributed systems.
+The main source of inspiration for this work was the Orleans framework for building distributed applications \cite{bernstein_orleans:_2014}. We believe Orleans' focus on \textit{programmability} and \textit{scalability} resonates with today's needs for ever-demanding large-scale distributed applications that need to be able to easily and continuously scale horizontally. The Orleans  framework defines a model based on a modernized variation of the actor model, known as a \textit{Virtual Actor Space}. In essence, a Virtual Actor Space consists of a global virtual address space, implemented as a distributed hash table that is used to for load balancing actor instantiations, dealing with fault tolerance as well as maintaining high levels of availability across the board of usable nodes in the clusters.
 
-Orleans \cite{bernstein_orleans:_????}
+The core high-level ideas in Orleans that enhance its ``programmability'' lie in the fact that actors are defined as virtual entities. \textit{Actors can never be explicitly created or destroyed}. An actor entity has \textit{activations} that get instantiated inside the system. If therefore something goes wrong and an actor becomes unavailable (e.g. because the host machine crashed), as soon as a message intended for the specific actor activation is sent, the activation automatically becomes instantiated on a different machine and computation continues normally. The beauty in this method is that it does not require the programmer to worry about any of this; the user only needs to define the actors and their behavior and just let the system run. Activations of actors can be either \textit{stateless} or \textit{stateful}. Stateless actors can be activated in indefinitely many nodes as needed for maximum concurrency. Only one activation per stateful actor is allowed however.
+
+Recently, Orleans has also included specialized functionality for dealing with streams \cite{research_microsoft_2015}; however this is simply an extension which holds true to the Orleans architecture geared towards distributed applications that incorporate streams of events. We believe that a \textit{generalization} of this virtualization layer can help sufficiently abstract distributed systems details, while using and extending the above ideas towards a general  system for distributed computation. Our vision is a system where users define their computation as actors and actor behavior using the standard building blocks defined by the traditional actor model, while also including a Virtual Actor Space for abstracting away all distributed systems details and thus allowing for effortless and scalable analytics.
+
+% Our hypothesis is that generalizing the above
+% - Orleans was inspired by and is a modern outlook on the traditional actor model.
+% - Basic idea: Virtual actors are logical entities that always exist. Actors have activations, and an activation can be spawned anywhere in the system. Actors are either stageful (only one activation at a time) or stateless (unboundedly scalable).
+% - Meant as a framework for easily and  intuitively programming distributed systems.
 
 
 
@@ -146,7 +150,7 @@ The primary motivation for the use of the actor abstraction for distributed comp
 \begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{nnmf_cast}
-    \caption{The actor cast for implementing online recommendations with matrix factorization.}
+    \caption{The actor cast for online recommendations with matrix factorization.}
     \label{fig:nnmf_cast}
 \end{figure}
 
@@ -163,7 +167,7 @@ The final application we analyzed is the most complex, and presents a significan
 \begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{solar_cast}
-    \caption{The actor cast for a bagging approach to multiple machine learning models for solar flare prediction.}
+    \caption{The actor cast for boosting multiple models for solar flare prediction.}
     \label{fig:solar_cast}
 \end{figure}
 
@@ -185,7 +189,7 @@ The actor cast shown in Figure \ref{fig:solar_cast} utilizes two weaker models (
     \hfil
     \subfloat[Solar Prediction]{\includegraphics[width=0.3\textwidth]{solar_comms}
     \label{fig:solar_comms}}
-    \caption{The corresponding communications patterns that we developed from these applications included branching, partial communication, iterative, front-loaded communication, and multiple-channel, full communication.}
+    \caption{The corresponding communications patterns that we developed from these applications included (a) branching, partial communication; (b) iterative, front-loaded communication; and (c) multiple-channel, full communication. Our simulation attempted to replicate these patterns with Actors.}
     \label{fig:communications_patterns}
 \end{figure*}
 
@@ -197,46 +201,101 @@ While these simplifications necessarily gloss over the computational requirement
 
 \section{Simulation Methodology}
 
-Simpy \cite{matloff_introduction_2008}
+Our primary method of investigation and analysis was a discrete event simulation of network communication in a cluster between actor programs. Our implementation was written in Python using the \texttt{simpy} \cite{matloff_introduction_2008} simulation library. In brief, \texttt{simpy} uses an event model that leverages \texttt{generator} objects (iterables or functions that \texttt{yield}, relinquishing processing until their \texttt{next} method is called) in order to control the state of the simulation. Discrete event simulations are therefore able to sequentially model complex systems of events that occur simultaneously, making them a useful tool for modeling network communication behavior.
 
-\begin{figure}[!h]
+Our primary framework was composed of two basic object types: \texttt{Process} and \texttt{Resource}. \texttt{Process} objects wrapped the \texttt{simpy.Environment} and implemented a \texttt{run} function that could yield events throughout the course of the simulation. Our \texttt{ActorMananager} and \texttt{ActorProgram} objects as well as our \texttt{Stream} dynamo were the primary process objects implemented in the simulation. The \texttt{Resource} objects wrapped a \texttt{simpy.Container} and represented a finite set of resources available to various processes. The most notable resource in our simulation was the \texttt{Network} object which provided limited bandwidth and increasing latency for message passing.
+
+The overall framework simulated a \texttt{Cluster}, which was composed of \texttt{Rack} objects that contained a number of \texttt{Node} objects as well as a \texttt{Network}. The \texttt{Network} provided a realistic simulation of message delay due to latency as well as congestion. Communication between nodes in two different racks was penalized (the ``intra-rack communications penalty'') while communications between nodes on the same rack was much faster. Both racks and nodes implemented an interface for message passing to ensure that communication was handled correctly. Nodes contain other resources as well, including a fixed number of CPUs (for the purposes of this simulation, we modeled one process to one CPU) as well as a fixed amount of \texttt{Memory}. Although we didn't go deep into modeling computational behavior, we have left stubs to simulate more traditional HPC implementations in the future.
+
+\subsection{Data Generation}
+
+An essential piece of our simulation is the generation of variable, streaming data into the cluster. We required a ``spikey'' model of data volume, one where normal traffic is routine, but occasional spikes of activity overload the system. Data was generated using \texttt{Dynamo} objects, which randomly generated values on request. Our two basic dynamos included a uniform distribution as well as a Gaussian distribution of data generation.
+
+\begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{streaming}
-    \caption{Variable streaming data source with spikes of high activity, and longer periods of normal activity.}
+    \caption{Variable streaming data source with spikes of high activity (volume) that was scaled from longer periods of normal activity. }
     \label{fig:streaming}
 \end{figure}
 
-Our streaming data simulation is shown in Figure \ref{fig:streaming}.
+Our streaming data dynamo was a bit more complex, however. It's basic operation was to create a normally distributed message volume, and took as parameters a mean number of messages and a standard deviation. At each step in the stream, with some small probability a ``spike'' could occur. The spike scaled the normal data volume by a uniform random amount, for a uniform random amount of time. The effect of this is a variable, streaming data pattern as shown in Figure \ref{fig:streaming}.
 
-% TODO: Cluster framework and representation
-% TODO: Parameters for the simulation (streaming is already above)
-% TODO: Discuss evaluation metric, utilization
+\subsection{Actor Management}
+
+Virtual actors were implemented in our cluster by means of a centralized \texttt{ActorManager} service, to which all messages were routed. Upon routing, the actor manager checked if the message was specifically addressed, and if so, ensured that the associated actor was activated and ready to receive the message. If not, the actor manager used a heuristic function to look for the ``best'' available actor to forward the message to (``best'' being a function of distance, availability, and readiness). Given no active actors, but available space in the cluster, the actor manager instantiated or activated dehydrated \texttt{ActorProgram} processes in preparation for forwarding incoming messages to.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.45\textwidth]{balance_sim_queue_lag_zero}
+    \caption{Actor service load balancing the number of active actors based on a variable rate of messages. This figure shows the utilization in terms of number of actors in response to the number of incoming messages (spikes) as well as the backlog of queued messages.}
+    \label{fig:load_balance}
+\end{figure}
+
+The actor manager also served a vital \textit{load balancing} role as shown in Figure \ref{fig:load_balance}. The actor service maintains a ``backlog'' or queue of messages that haven't been routed yet, either due to availability or delay in instantiation. If the backlog is empty, the actor service compares the number of available actors to the number required for handling messages. If there are too many available actors, it sends deactivate commands, which persist the actor's state (a fixed time cost) then shut down the actor. Figure \ref{fig:load_balance} shows that the utilization (number of actors) is offset, but proportional to spikes in the streaming data service.
+
+The behavior of each \texttt{ActorProgram} was to maintain state - either as activated/deactivated and as ready/busy. In the ready state, the program could accept messages, and ``handle them'' by imposing a variable delay cost (processing time) and then by sending zero or more additional messages, routing them through the actor service.  Communication patterns were implemented by identifying different actor programs as colors. Actors of different colors sent a variable number of messages to actors of other colors based on their rank in the communications hierarchy.
+
+For example in the online recommendations communication pattern, the \texttt{green} actor (the root node of the graph) sent two messages to \texttt{forest} actors. Each \texttt{forest} actor sent a message to another \texttt{forest} actor with a decrementing count. Once the counter reached zero, the message was forwarded to several \texttt{lime} actors. By using color encoding, multiple simulations of applications could be run simultaneously. For example, by having a streaming data service source both \texttt{red} and \texttt{blue} messages, then both communications patterns would exist on the cluster simultaneously.
 
 \section{Discussion}
 
+
+
+This prob
 % TODO: Discuss what we learned
 % TODO: Future work, etc.
 Creating this simulation was a great idea...
 Allowed for reasoning about the behaviour of such a system in different workloads, communication patterns, and hardware setup configurations.
 
-The results yielded by the simulation appear to be ...
-Our goals overlooking future work are tri-fold. We are interested in continuing to potentially add complexity to the simulation, which will allow for even more precise results. We believe another fundamental piece of this is also focusing on providing an easy to use API that will allow for as intuitive as possible programmability and adaptability of a framework like this into a cluster. Finally, once we will begin building a prototype of the system and start using it.  We believe that the system building process will spawn new and exciting problems in this space that will motivate and guide our future research on these topics.
+
+
 
 If the number of available actors doesn't exceed the expected traffic, then the queue will continue to grow; forcing a reconfiguration.
 
+\subsection{Results}
+
+The results yielded by the simulation appear to be ...
+
+\begin{figure*}[!t]
+    \centering
+    \subfloat[Email Dataflow]{\includegraphics[width=0.3\textwidth]{balance_sim_queue_lag_ten}
+    \label{fig:dataflow_utilization}}
+    \hfil
+    \subfloat[Online Recommendation]{\includegraphics[width=0.3\textwidth]{balance_sim_queue_lag_zero}
+    \label{fig:nnmf_utilization}}
+    \hfil
+    \subfloat[Solar Prediction]{\includegraphics[width=0.3\textwidth]{balance_sim_unbounded_growth}
+    \label{fig:solar_utilization}}
+    \caption{caption.}
+    \label{fig:communications_patterns_simulations}
+\end{figure*}
+
+\subsection{Future Work}
+
+The semester long task that we undertook to study the use of actors for streaming data was certainly an ambitious one, which had many twists probably reflected in this paper. We didn't conclude to do the simulation until much later in our study, focusing instead on attempting to implement a parallel implementation of one of the applications we have analyzed. As a result, our simulation results are not as robust as we would like. Although we did manage to simulate general communication patterns, further study in simulation is required to show how variable load parameters affect utilization.
+
+We therefore have three primary goals for future work: continuing the simulation, developing a virtual actor API, and building a generalized virtual actor system. By continuing to add complexity to the simulation we hope to encourage more precise results that better demonstrate how our system will act in the real world and compares to similar frameworks. We would like to simulate a baseline dataflow computation to provide a comparison. Further, the development and contrast of a variety of load balancing and scaling mechanisms seems like useful, informative work.
+
+Another fundamental piece of our study requires showing the ease of use of the programming abstraction. By developing an API for virtual actors, we hope to show that the programmability of the model is intuitive, and well suited to be adapted to cluster computing. Finally, no API alone is sufficient, and we would like to begin building a prototype of the system. We believe that the system building process will spawn new and exciting problems in this space that will motivate and guide our future research on these topics.
+
 \section{Conclusion}
-The conclusion goes here.
+
+In this paper we have presented the use of virtual actors as a distributed programming abstraction that may be well suited to replacing the dataflow model of computation for variable, streaming data. By describing a computation as a number of actors, along with the communication flow between them programmers may easily define a computational methodology that can automatically scale and load balance to handle higher rates of data. Generalized virtual actor spaces are high level abstractions that provide a rich low level concurrency.
+
+In order to test the model in the real world, we analyzed three applications and fit them to an actor cast. Through the process of application analysis we discovered three generic communication models that represent a variety of message passing patterns in streaming applications. We then implemented a discrete event simulation to test the utilization of actors through this variety of communications.
 
 % This should be very brief
 
-The Github repository with the code for our simulation can be found at \url{http://bit.ly/actors-simulation}.
+The Github repository with the code for our simulation can be found at \bennote{\url{http://bit.ly/actors-simulation}}.
 
 % conference papers do not normally have an appendix
 
 
 % use section* for acknowledgment
 \section*{Acknowledgment}
-We would like to thank Dr. Josh Rigler from USGS for discussing the magnetometer project with us, the available data sources and how it could be computed upon. We would also like to thank Dr. Michael Wiltberger from NCAR as well as Dr. Alan Susman from UMD who put us in touch with Dr. Rigler. Finally we'd like to thank Dr. Amol Deshpande for taking a look at our work and inspiring the initial actor model research.
+We would like to thank Dr. Josh Rigler from USGS for discussing the magnetometer project with us, the available data sources and how it could be computed upon. We would also like to thank Dr. Michael Wiltberger from NCAR as well as Dr. Alan Sussman from UMD who put us in touch with Dr. Rigler. We'd like to thank Dr. Amol Deshpande for taking a look at our work and inspiring the initial actor model research. Finally, we'd like to thank Dr. Jeff Hollingsworth for his guidance and forbearance as we pursued this project as part of our High Performance Computing coursework.
+
+\newpage
 
 % begin the references section.
 \bibliographystyle{IEEEtran}
