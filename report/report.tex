@@ -86,16 +86,19 @@ This section describes a distributed computing framework that utilizes \textit{v
 
 \subsection{Actors for Concurrency}
 
-Actors are a model for reasoning about concurrent computation which is inspired by the \textit{communication mechanisms} of a society of experts that engage in effective problem solving \cite{hewitt_viewing_1977}.  Like other distributed models, actors are event oriented where ``events'' are messages received from other actors, and therefore parallelism is demonstrated through the partial ordering of these events. At a higher level, actors can be seen as data or task parallel pieces of a larger overall computation which maintain their state (e.g. each actor is a SPMD program).
+Actors are a model for reasoning about concurrent computation which is inspired by the \textit{communication mechanisms} of a society of experts that engage in effective problem solving \cite{hewitt_viewing_1977}.  Like other distributed models, actors are event oriented where ``events'' are messages received from other actors, and therefore parallelism is demonstrated through the partial ordering of these events \cite{agha_actors:_1985}. At a higher level, actors can be seen as data or task parallel pieces of a larger overall computation which maintain their state (e.g. each actor is a SPMD program).
 
-\bennote{I wasn't sure how to incorporate agha, though it needs to be added here.}
+Actors embody the three fundamental properties of computation: (1) storage (state), (2) processing , and (3) communication. In the traditional model, actors provide a simple abstraction for units of computation that can be programmed. Using these three resources at their disposal, Actors provide an intuitive way to reason about concurrent computation; as they can be easily associated with the real world. Actors provide a simple, concise interface that contribute to the programmability of this model.
 
-Actors embody the three fundamental properties of computation: (1) storage (state), (2) processing , and (3) communication. In the traditional model, actors provide a simple abstraction for units of computation that can be programmed. Using these three resources at their disposal, Actors provide an intuitive way to reason about concurrent computation; as they can be easily associated with the real world. Actors provide a simple, concise interface that contribute to the programmability of this model. Actors operate under three necessary and sufficient \textit{axioms}. In response to the receipt of a message, apart from \textit{altering its own state}, an actor can engage in one of three simple actions: They can (1) create a finite number of \textit{new} actors, (2) send a finite number of messages to other actors it has the addresses of, and (3) designate its behavior upon receiving the next message. According to the conceptual model, actors can process a single message at a time, but in practice, they can be implemented so that they can handle arbitrarily many messages at a time. %maybe connect this to the thing im saying below as to the fact that you can do different things under the hood shows the power of this abstraction.
+Actors operate under three necessary and sufficient \textit{axioms}. In response to the receipt of a message, apart from \textit{altering its own state}, an actor can engage in one of three simple actions, they can:
 
-We believe the power of the actor model lies in its simplicity, as well as its ability to concisely model the control flow of parallel computation as it naturally ``emerges'' out of the behavior of actor entities in response to the receipt of messages.
+\begin{enumerate}
+    \item Create a finite number of \textit{new} actors.
+    \item Send a finite number of messages to other actors.
+    \item Designate its behavior upon receiving the next message.
+\end{enumerate}
 
-Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
-
+According to the conceptual model, actors can process a single message at a time, but in practice, they can be implemented so that they can handle arbitrarily many messages at a time. The power of this model is therefore its simplicity; the control flow of computation is concisely expressed but parallelism naturally ``emerges'' from the behavior of actor entities in response to the receipt of messages.
 
 \subsection{Generalized Virtual Actor Space}
 
@@ -106,11 +109,13 @@ Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
     \label{fig:architecture}
 \end{figure}
 
-The main source of inspiration for this work was the Orleans framework for building distributed applications \cite{bernstein_orleans:_2014}. We believe Orleans' focus on \textit{programmability} and \textit{scalability} resonates with today's needs for ever-demanding large-scale distributed applications that need to be able to easily and continuously scale horizontally. The Orleans  framework defines a model based on a modernized variation of the actor model, known as a \textit{Virtual Actor Space}. In essence, a Virtual Actor Space consists of a global virtual address space, implemented as a distributed hash table that is used to for load balancing actor instantiations, dealing with fault tolerance as well as maintaining high levels of availability across the board of usable nodes in the clusters.
+The main source of inspiration for this work was the Orleans framework for building distributed applications \cite{bernstein_orleans:_2014}. Orleans' focus on \textit{programmability} and \textit{scalability} resonates with the modern requirement for demanding large-scale distributed applications that need to easily and continuously scale horizontally. The Orleans framework defines a model based on a modernized variation of the actor model, known as a \textit{Virtual Actor Space}. In essence, a Virtual Actor Space consists of a global virtual address space, implemented as a distributed hash table that is used to for load balancing actor instantiations, dealing with fault tolerance as well as maintaining high levels of availability across the board of usable nodes in the clusters.
 
-The core high-level ideas in Orleans that enhance its ``programmability'' lie in the fact that actors are defined as virtual entities. \textit{Actors can never be explicitly created or destroyed}. An actor entity has \textit{activations} that get instantiated inside the system. If therefore something goes wrong and an actor becomes unavailable (e.g. because the host machine crashed), as soon as a message intended for the specific actor activation is sent, the activation automatically becomes instantiated on a different machine and computation continues normally. The beauty in this method is that it does not require the programmer to worry about any of this; the user only needs to define the actors and their behavior and just let the system run. Activations of actors can be either \textit{stateless} or \textit{stateful}. Stateless actors can be activated in indefinitely many nodes as needed for maximum concurrency. Only one activation per stateful actor is allowed however.
+The core ideas in Orleans that enhance its ``programability'' stem from the single premise that actors are logical entities that exist for the duration of processing. As a result, \textit{actors can never be explicitly created or destroyed}. Actor entities have \textit{activations} that get instantiated inside the system. Fault tolerance is provided by detecting message send failures -- in this case the actor is reactivated on a different machine and computation continues normally. Finally, activations of actors can be either \textit{stateless} or \textit{stateful}. Stateless actors can be activated in indefinitely upon as many nodes as needed for maximum concurrency, however, only one activation per stateful actor is allowed to provide consistency guarantees.
 
-Recently, Orleans has also included specialized functionality for dealing with streams \cite{research_microsoft_2015}; however this is simply an extension which holds true to the Orleans architecture geared towards distributed applications that incorporate streams of events. We believe that a \textit{generalization} of this virtualization layer can help sufficiently abstract distributed systems details, while using and extending the above ideas towards a general  system for distributed computation. Our vision is a system where users define their computation as actors and actor behavior using the standard building blocks defined by the traditional actor model, while also including a Virtual Actor Space for abstracting away all distributed systems details and thus allowing for effortless and scalable analytics.
+A virtual actor space therefore provides the perpetual existence of actors, automatic instantiation, and locale transparency. A generalized virtual actor framework can use these properties to automatically scale and load balance the activations running on a cluster at one time. But the true beauty of this method is that it does not require the programmer to consider the details of scaling and load balancing on the cluster. The user simply needs to define actors, their behavior, and how they communicate.
+
+Recently, Orleans has also included specialized functionality for dealing with streams \cite{research_microsoft_2015}; however this is simply an extension which holds true to the Orleans architecture geared towards distributed applications that incorporate streams of events. We believe that a \textit{generalization} of this virtualization layer can help sufficiently abstract distributed systems details, while using and extending the above ideas towards a general  system for distributed computation. Our vision as shown in Figure \ref{fig:architecture} is a system where users define their computation as actors and actor behavior using the standard building blocks defined by the traditional actor model, while also including a Virtual Actor Space for abstracting away all distributed systems details and thus allowing for effortless and scalable analytics.
 
 % Our hypothesis is that generalizing the above
 % - Orleans was inspired by and is a modern outlook on the traditional actor model.
@@ -147,7 +152,7 @@ Because data flows provide data parallelism, concurrency is available in two pla
 
 The primary motivation for the use of the actor abstraction for distributed computing is to provide a programming model that allowed cyclic or direct inter-process communication between stateful nodes, something that the data flow model as proposed in the previous section cannot allow. This requirement is primarily related to online machine learning methods that utilize some form of optimization to fit a model, particularly linear models, clustering approaches, or training deep neural networks. Therefore, the second application we analyzed was that of a collaborative filtering system that provides real time recommendations for users as they browse an online store, viewing items or adding them to their cart.
 
-\begin{figure}[!t]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.45\textwidth]{nnmf_cast}
     \caption{The actor cast for online recommendations with matrix factorization.}
@@ -158,18 +163,18 @@ The most popular form of collaborative filtering for recommendations that are cu
 
 Although both ALS and CCD could be implemented as actor casts, we have chosen to present an actor cast for distributed stochastic gradient descent (SGD) \cite{gemulla_large-scale_2011} as shown in Figure \ref{fig:nnmf_cast}. Distributed SGD is more generally applied and well understood. In this model, accumulators are required to buffer incoming streaming data while the model is being computed upon and multiple models can be computed simultaneously depending on data volume and partitioning schemes (for example by genre for a book store).
 
-A set of actors decomposes the original, sparse matrix and begins the process of updating the divisors of the original matrix based on a learning rate and the derivative of the error curve. However, each gradient computer must also send horizontal information based on their computations to ensure that the dot product across the entire matrix is computed correctly, requiring interprocess communication. An accumulator aggregates the matrix tuples, which can then be fed to a parallel residuals computation. Although the details of this model are omitted for brevity, we want to primarily show that parallel and distributed algorithms can easily be implemented using an actor model, and in this case, with a cast of relatively few types of actors.
-
-\subsection{Solar Flare Prediction}
-
-The final application we analyzed is the most complex, and presents a significant challenge to both the traditional data flow model, as well as online machine learning. The inspiration for this analysis was a novel streaming data source, namely the 14 magnetic observatories across the northern hemisphere that monitor the earth's magnetic field for the USGS Geomagnetism Program \cite{love_usgs_2011}. Traditionally, the earth's magnetic field is modeled using scientific computing methods, however we believe that real-time Bayesian anomaly detection techniques \cite{hill_real-time_2007} might allow us to incoming predict solar weather based on currently observed anomalies.
-
 \begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{solar_cast}
     \caption{The actor cast for boosting multiple models for solar flare prediction.}
     \label{fig:solar_cast}
 \end{figure}
+
+A set of actors decomposes the original, sparse matrix and begins the process of updating the divisors of the original matrix based on a learning rate and the derivative of the error curve. However, each gradient computer must also send horizontal information based on their computations to ensure that the dot product across the entire matrix is computed correctly, requiring interprocess communication. An accumulator aggregates the matrix tuples, which can then be fed to a parallel residuals computation. Although the details of this model are omitted for brevity, we want to primarily show that parallel and distributed algorithms can easily be implemented using an actor model, and in this case, with a cast of relatively few types of actors.
+
+\subsection{Solar Flare Prediction}
+
+The final application we analyzed is the most complex, and presents a significant challenge to both the traditional data flow model, as well as online machine learning. The inspiration for this analysis was a novel streaming data source, namely the 14 magnetic observatories across the northern hemisphere that monitor the earth's magnetic field for the USGS Geomagnetism Program \cite{love_usgs_2011}. Traditionally, the earth's magnetic field is modeled using scientific computing methods, however we believe that real-time Bayesian anomaly detection techniques \cite{hill_real-time_2007} might allow us to incoming predict solar weather based on currently observed anomalies.
 
 Bayesian approaches to solar flare prediction have been proposed in \cite{wheatland_bayesian_2004}, which notes that past activity of flares in a particular region of the Sun is a good indicator of future occurrences. Correlation of sunspot groups and flares using commonplace machine learning techniques was proposed in \cite{qahwaji_automatic_2007}. Furthermore, an analysis of short term sequential magnetosphere data (of the sun) was analyzed as features to supervised methods in \cite{yu_short-term_2009}, showing that three days worth of solar magnetosphere data was enough to predict flares; this approach was made more accurate using a multiresolution (e.g. boosting) approach that required less historical data to predict flares \cite{yu_short-term_2010}. None of these studies showed the relationship of predictors based on measuring the Earth's magnetosphere, however, we believe they are sufficient motivation for investigation into an actor cast implementation.
 
@@ -239,36 +244,33 @@ For example in the online recommendations communication pattern, the \texttt{gre
 
 \section{Discussion}
 
+Utilizing a simulation to study the computational framework we devised allowed us to isolate the communications model of the actor framework. However, the complexity of performing a discrete event simulation combined with specific requirements for each communication pattern led to challenges in getting our implementation set up and running correctly. We were plagued by a variety of bugs that were extremely difficult to track down as the simulation buried exceptions as ``failed events''. As a result, even though we did manage to simulate a variety of communication patterns, we ran out of time to start inspecting simulation configuration variables and perform a more thorough analysis on our results.
 
-
-This prob
-% TODO: Discuss what we learned
-% TODO: Future work, etc.
-Creating this simulation was a great idea...
-Allowed for reasoning about the behaviour of such a system in different workloads, communication patterns, and hardware setup configurations.
-
-
-
-
-If the number of available actors doesn't exceed the expected traffic, then the queue will continue to grow; forcing a reconfiguration.
+However, along the way we did learn a lot about how to implement both an actor simulation as well as a prototype virtual actor framework. In this section we will present several scenarios that we encountered during our simulation that required framework-specific solutions. We will also present our goals for future work.
 
 \subsection{Results}
 
-The results yielded by the simulation appear to be ...
-
 \begin{figure*}[!t]
     \centering
-    \subfloat[Email Dataflow]{\includegraphics[width=0.3\textwidth]{balance_sim_queue_lag_ten}
+    \subfloat[Partial Communication]{\includegraphics[width=0.3\textwidth]{dataflow_simulation}
     \label{fig:dataflow_utilization}}
     \hfil
-    \subfloat[Online Recommendation]{\includegraphics[width=0.3\textwidth]{balance_sim_queue_lag_zero}
+    \subfloat[Iterative Communication]{\includegraphics[width=0.3\textwidth]{nnmf_simulation}
     \label{fig:nnmf_utilization}}
     \hfil
-    \subfloat[Solar Prediction]{\includegraphics[width=0.3\textwidth]{balance_sim_unbounded_growth}
+    \subfloat[Multi-Channel Communication]{\includegraphics[width=0.3\textwidth]{solar_simulation}
     \label{fig:solar_utilization}}
-    \caption{caption.}
+    \caption{The initial results for utilization and queueing relative to message load for our three general communication patterns.}
     \label{fig:communications_patterns_simulations}
 \end{figure*}
+
+Unfortunately as shown in Figure \ref{fig:communications_patterns_simulations} we can only display initial results for the three communication patterns we have implemented in simulation. This is partially due to hard to track bugs in the system, but also due to the unique load balancing and scaling challenges involved in each communication model. The primary lesson learned from our study is that although actor based communication provides a simple model of concurrency (and even a simple method for simulation), \textit{virtual actors} require more engineering related to backpressure of incoming data, and the algorithms used for both scaling and load balancing.
+
+In many cases, a configuration search is required to find the optimal number of nodes to handle both normal traffic and spikes. As shown in Figure \ref{fig:solar_utilization}, if the number of available actors doesn't exceed the expected traffic, then the queue will continue to grow until the entire capacity of the cluster is consumed. Even if there is buffer, that is times when the traffic is light enough to allow the actors to begin to recover, if the cluster doesn't scale in-time, it will get far enough behind that it cannot recover.
+
+As expected, in each communication pattern the number of messages generated by actors far exceeded the incoming messages, as data was passed through the communication flow. As in Figure \ref{fig:dataflow_utilization}, if the ratio of the maximum number of nodes relative to the messages generated is proportional to the incoming messages, then the simulation plateaus, only just able to keep up with normal message traffic. However, in the iterative case as in Figure \ref{fig:nnmf_utilization}, even when iteration is complete (as evidenced by the spikes in the queue), the lag behind the system state and activations causes more actor activations, never allowing the system to balance properly, the backlog starts to grow out of proportion.
+
+Both of the cases described above are due to the mismatch between the \textit{activation time} and the \textit{message receipt}. We tried various solutions, including introducing a message lag (which had the effect of never allowing the queue to drop to zero) and tracking the number of activations and only allowing a proportion to be activated (which didn't limit the peak activations, but made the system take longer to get there). In either case, it is clear that more sophisticated protocols than the ones we implemented are required for a prototype virtual actor framework.
 
 \subsection{Future Work}
 
@@ -294,8 +296,6 @@ The Github repository with the code for our simulation can be found at \bennote{
 % use section* for acknowledgment
 \section*{Acknowledgment}
 We would like to thank Dr. Josh Rigler from USGS for discussing the magnetometer project with us, the available data sources and how it could be computed upon. We would also like to thank Dr. Michael Wiltberger from NCAR as well as Dr. Alan Sussman from UMD who put us in touch with Dr. Rigler. We'd like to thank Dr. Amol Deshpande for taking a look at our work and inspiring the initial actor model research. Finally, we'd like to thank Dr. Jeff Hollingsworth for his guidance and forbearance as we pursued this project as part of our High Performance Computing coursework.
-
-\newpage
 
 % begin the references section.
 \bibliographystyle{IEEEtran}
