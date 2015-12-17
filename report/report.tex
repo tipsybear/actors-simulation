@@ -2,7 +2,7 @@
 % Uncomment the below line for the double spaced, review copy
 % \documentclass[draftclsnofoot,onecolumn,conference,11pt]{IEEEtran}
 % Uncomment the below line for the two column, final copy
-\documentclass[conference,twocolumn,11pt]{IEEEtran}
+\documentclass[conference,twocolumn,10pt]{IEEEtran}
 
 % Load packages for the report
 \usepackage{cite}
@@ -68,13 +68,13 @@ Recently, the Actor model of concurrency in distributed systems has regained pop
 
 \section{Introduction}
 
-Sensors, web logs, and other timely data sources are increasingly being used for  real-time or on-demand applications that utilize machine learning models to quickly make predictions and adapt to changes reflected by the input data. Timely sources present a challenge as they are streams of unbounded, occasionally unordered data sets that must be computed upon in an online, real-time fashion rather than in batch. When these data sources are also variable (e.g. the volume of traffic can occasionally spike) then the underlying computing framework must be able to scale and balance the load or risk falling so far behind that the computation becomes meaningless. Scalability must also be \textit{effortless}, should ``just work'' by simply scaling out the cluster size, and be \textit{adaptive} so that the cluster can be fairly utilized by all available jobs. \bennote{accepted the above - nice!}
+Sensors, web logs, and other timely data sources are increasingly being used for  real-time or on-demand applications that utilize machine learning models to quickly make predictions and adapt to changes reflected by the input data. Timely sources present a challenge as they are streams of unbounded, occasionally unordered data sets that must be computed upon in an online, real-time fashion rather than in batch. When these data sources are also variable (e.g. the volume of traffic can occasionally spike) then the underlying computing framework must be able to scale and balance the load or risk falling so far behind that the computation becomes meaningless. Scalability must also be \textit{effortless}, should ``just work'' by simply scaling out the cluster size, and be \textit{adaptive} so that the cluster can be fairly utilized by all available jobs.
 
 Because of the widespread adoption of distributed computing frameworks like MapReduce \cite{dean_mapreduce:_2008} and Spark \cite{zaharia_resilient_2012}, distributed computing in a cluster of (often virtualized) economic servers has become the default, general method of high performance data processing. These frameworks primarily abstract the details of parallelism and distributing computation away from the developer, and have allowed a wider community of programmers and scientists to take advantage of parallel algorithms and libraries. Machine learning in particular has come of age in this computing environment, and as a result there exist many high level libraries for fitting a wide array of models in parallel.
 
 As a result, tools for dealing with \textit{streaming data} (unbounded, unordered, variable data sources) have mostly been contextualized similarly to parallel machine learning algorithms -- via descriptions of how data flows through the application. Tools like Spark Streaming \cite{zaharia_discretized_2012}, Storm \cite{toshniwal_storm_2014}, and Google DataFlow \cite{akidau_dataflow_2015} implement a \textit{data flow} programming model, where analysis is described as a directed graph whose nodes represent a single computation, and whose edges represent the transmission of input and output values. Describing computation this way is simple, adaptable, and when mapped to a distributed topology, scalable. However, this model does not allow nodes to \textit{communicate}, nor does it provide any flexibility in the computational topology for error handling, transactional guarantees, consistency, or persistence.
 
-In response to this inflexibility of the data flow model, the \textit{actor model} \cite{hewitt_viewing_1977, agha_actors:_1985} has been re-emerging as an abstraction that allows for more versatility in communication between distributed processes while still being at a high enough level to abstract the details of communication within the cluster away from the programmer. Ironically, it is this model that underpins the more general data flow models \cite{gonzalez_asynchronous_2015}, perhaps due to the fact that these applications are implemented in the Scala programming language, which by default uses actors for concurrency \cite{haller_scala_2009,karmani_actor_2009}. Actors in this context are high level primitives that do not share state, making them ideal candidates for under-the-hood parallelism. However, a simple data structure alone is not enough for a distributed computing; there must also be an execution and job management context. Orleans \cite{bernstein_orleans:_2014} presents the idea of a ``virtual actor space'', analogous to virtual memory, such that actor activations (e.g. instances of a program) exist forever, are transparent to their locale, and are automatically instantiated and deactivated. Virtual actors therefore provide for automatic scaling and load balancing in the cluster, and we believe are a novel and suitable alternative to the data flow model in the context of online, streaming computation.
+In response to this inflexibility of the data flow model, the \textit{actor model} \cite{hewitt_viewing_1977, agha_actors:_1985} has been re-emerging as an abstraction that allows for more versatility in communication between distributed processes while still being at a high enough level to abstract the details of communication within the cluster away from the programmer. Ironically, it is this model that underpins the more general data flow models \cite{gonzalez_asynchronous_2015}, perhaps due to the fact that these applications are implemented in the Scala programming language, which by default uses actors for concurrency \cite{haller_scala_2009,karmani_actor_2009}. Actors in this context are high level primitives that do not share state, making them ideal candidates for under-the-hood parallelism. However, a simple data structure alone is not enough for a distributed computing; there must also be an execution and job management context. Orleans \cite{bernstein_orleans:_????} presents the idea of a ``virtual actor space'', analogous to virtual memory, such that actor activations (e.g. instances of a program) exist forever, are transparent to their locale, and are automatically instantiated and deactivated. Virtual actors therefore provide for automatic scaling and load balancing in the cluster, and we believe are a novel and suitable alternative to the data flow model in the context of online, streaming computation.
 
 In this paper we investigate the potential of virtual actors for distributed computing on streaming data by simulating a computing cluster which implements a \textit{generalized virtual actor space}. A generalized virtual actor space replaces the programing model of virtual actors with a daemon service that runs in the background of all nodes in the cluster; allocating resources to a variety of actor programs in an on-demand fashion such that the resources can scale as variability of data streams changes, while balancing load across many ``always on'' computations that must share resources. We have simulated this framework by analyzing the communications patterns of three real-time applications: a traditional data flow, an online recommendation application, and a solar weather forecasting application. We then present an analysis of how the virtual actor model behaved in simulation on the cluster and show that this model is a suitable substitute for the data flow model.
 
@@ -99,7 +99,7 @@ Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
 
 \subsection{Generalized Virtual Actor Space}
 
-\begin{figure}[h]
+\begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{architecture}
     \caption{The architecture for a generalized virtual actor framework.}
@@ -111,7 +111,7 @@ The main source of inspiration for this work was the Orleans framework for build
 - Basic idea: Virtual actors are logical entities that always exist. Actors have activations, and an activation can be spawned anywhere in the system. Actors are either stateful (only one activation at a time) or stateless (unboundedly scalable).
 - Meant as a framework for easily and  intuitively programming distributed systems.
 
-Orleans \cite{bernstein_orleans:_2014}
+Orleans \cite{bernstein_orleans:_????}
 
 
 
@@ -143,7 +143,7 @@ Because data flows provide data parallelism, concurrency is available in two pla
 
 The primary motivation for the use of the actor abstraction for distributed computing is to provide a programming model that allowed cyclic or direct inter-process communication between stateful nodes, something that the data flow model as proposed in the previous section cannot allow. This requirement is primarily related to online machine learning methods that utilize some form of optimization to fit a model, particularly linear models, clustering approaches, or training deep neural networks. Therefore, the second application we analyzed was that of a collaborative filtering system that provides real time recommendations for users as they browse an online store, viewing items or adding them to their cart.
 
-\begin{figure}[!h]
+\begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{nnmf_cast}
     \caption{The actor cast for implementing online recommendations with matrix factorization.}
@@ -160,7 +160,7 @@ A set of actors decomposes the original, sparse matrix and begins the process of
 
 The final application we analyzed is the most complex, and presents a significant challenge to both the traditional data flow model, as well as online machine learning. The inspiration for this analysis was a novel streaming data source, namely the 14 magnetic observatories across the northern hemisphere that monitor the earth's magnetic field for the USGS Geomagnetism Program \cite{love_usgs_2011}. Traditionally, the earth's magnetic field is modeled using scientific computing methods, however we believe that real-time Bayesian anomaly detection techniques \cite{hill_real-time_2007} might allow us to incoming predict solar weather based on currently observed anomalies.
 
-\begin{figure}[!h]
+\begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{solar_cast}
     \caption{The actor cast for a bagging approach to multiple machine learning models for solar flare prediction.}
