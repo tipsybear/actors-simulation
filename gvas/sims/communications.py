@@ -22,7 +22,7 @@ from gvas.dynamo import Stream, Normal
 from gvas.cluster.network import Message
 from gvas.base import Simulation, Process
 from gvas.cluster import create_default_cluster
-from gvas.actors import BlueActor, ActorManager
+from gvas.actors import BlueActor, CommunicationsManager
 from gvas.utils.logger import LoggingMixin
 from .balance import BalanceSimulation
 
@@ -95,7 +95,7 @@ class CommunicationsSimulation(BalanceSimulation):
         """
         Constructs the load balancing script for the simulation.
         """
-        self.manager = ActorManager(self.env, self.cluster)
+        self.manager = CommunicationsManager(self.env, self.cluster)
         self.stream  = StreamingData(self.env, self.manager)
 
         # Create actor programs for every node in the cluster.

@@ -30,12 +30,15 @@ from .base import ActorProgram
 
 class BlueActor(ActorProgram):
 
+    colors = ['blue', 'teal', 'cyan', 'navy', 'sky']
+
+    def __init__(self, *args, **kwargs):
+        self.color = 'blue'
+        super(BlueActor, self).__init__(*args, **kwargs)
+
+
     def handle(self, message):
         self.logger.info("ACTOR: ID: {}, WORKING".format(self.id))
         yield self.env.timeout(1)
 
         # add to outbox
-
-
-class TealActor(ActorProgram):
-    pass
