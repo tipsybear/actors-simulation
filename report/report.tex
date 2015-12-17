@@ -1,8 +1,8 @@
 % report.tex - HPC 714 Report
 % Uncomment the below line for the double spaced, review copy
-\documentclass[draftclsnofoot,onecolumn,conference,11pt]{IEEEtran}
+% \documentclass[draftclsnofoot,onecolumn,conference,11pt]{IEEEtran}
 % Uncomment the below line for the two column, final copy
-% \documentclass[conference,twocolumn,10pt]{IEEEtran}
+\documentclass[conference,twocolumn,10pt]{IEEEtran}
 
 % Load packages for the report
 \usepackage{cite}
@@ -152,16 +152,12 @@ Because data flows provide data parallelism, concurrency is available in two pla
 
 The primary motivation for the use of the actor abstraction for distributed computing is to provide a programming model that allowed cyclic or direct inter-process communication between stateful nodes, something that the data flow model as proposed in the previous section cannot allow. This requirement is primarily related to online machine learning methods that utilize some form of optimization to fit a model, particularly linear models, clustering approaches, or training deep neural networks. Therefore, the second application we analyzed was that of a collaborative filtering system that provides real time recommendations for users as they browse an online store, viewing items or adding them to their cart.
 
-\begin{figure}[!h]
+\begin{figure}[!t]
     \centering
     \includegraphics[width=0.45\textwidth]{nnmf_cast}
     \caption{The actor cast for online recommendations with matrix factorization.}
     \label{fig:nnmf_cast}
 \end{figure}
-
-The most popular form of collaborative filtering for recommendations that is currently implemented are variations of the Netflix prize, which used a non-negative matrix factorization method with temporal dynamics \cite{koren_collaborative_2010}. Collaborative filtering involves the use of very sparse matrices, and sparse matrix factorization techniques for high performance computing is well studied \cite{gupta_highly_1997}. Currently the most popular algorithms used for parallel matrix factorization in recommenders are alternating least squares (ALS), which is implemented in Spark MLlib as well as cyclic coordinated descent (CCD) \cite{yu_scalable_2012}.
-
-Although both ALS and CCD could be implemented as actor casts, we have chosen to present an actor cast for distributed stochastic gradient descent (SGD) \cite{gemulla_large-scale_2011} as shown in Figure \ref{fig:nnmf_cast}. Distributed SGD is more generally applied and well understood. In this model, accumulators are required to buffer incoming streaming data while the model is being computed upon and multiple models can be computed simultaneously depending on data volume and partitioning schemes (for example by genre for a book store).
 
 \begin{figure}[!t]
     \centering
@@ -169,6 +165,10 @@ Although both ALS and CCD could be implemented as actor casts, we have chosen to
     \caption{The actor cast for boosting multiple models for solar flare prediction.}
     \label{fig:solar_cast}
 \end{figure}
+
+The most popular form of collaborative filtering for recommendations that is currently implemented are variations of the Netflix prize, which used a non-negative matrix factorization method with temporal dynamics \cite{koren_collaborative_2010}. Collaborative filtering involves the use of very sparse matrices, and sparse matrix factorization techniques for high performance computing is well studied \cite{gupta_highly_1997}. Currently the most popular algorithms used for parallel matrix factorization in recommenders are alternating least squares (ALS), which is implemented in Spark MLlib as well as cyclic coordinated descent (CCD) \cite{yu_scalable_2012}.
+
+Although both ALS and CCD could be implemented as actor casts, we have chosen to present an actor cast for distributed stochastic gradient descent (SGD) \cite{gemulla_large-scale_2011} as shown in Figure \ref{fig:nnmf_cast}. Distributed SGD is more generally applied and well understood. In this model, accumulators are required to buffer incoming streaming data while the model is being computed upon and multiple models can be computed simultaneously depending on data volume and partitioning schemes (for example by genre for a book store).
 
 A set of actors decomposes the original, sparse matrix and begins the process of updating the divisors of the original matrix based on a learning rate and the derivative of the error curve. However, each gradient computer must also send horizontal information based on their computations to ensure that the dot product across the entire matrix is computed correctly, requiring interprocess communication. An accumulator aggregates the matrix tuples, which can then be fed to a parallel residuals computation. Although the details of this model are omitted for brevity, we want to primarily show that parallel and distributed algorithms can easily be implemented using an actor model, and in this case, using a cast of relatively few types of actors.
 
