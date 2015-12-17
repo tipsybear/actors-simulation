@@ -22,7 +22,7 @@ from gvas.dynamo import Stream, Normal
 from gvas.cluster.network import Message
 from gvas.base import Simulation, Process
 from gvas.cluster import create_default_cluster
-from gvas.actors import BlueActor, CommunicationsManager
+from gvas.actors import BlueActor, GreenActor, CommunicationsManager
 from gvas.utils.logger import LoggingMixin
 from .balance import BalanceSimulation
 
@@ -91,15 +91,22 @@ class CommunicationsSimulation(BalanceSimulation):
             self.diary.update('incoming', self.stream.last_volume)
             yield self.env.timeout(1)
 
+    def initial_actor(self, color):
+        if color == 'blue':
+            return BlueActor
+        if color == 'green':
+            return GreenActor
+
     def script(self):
         """
         Constructs the load balancing script for the simulation.
         """
         self.manager = CommunicationsManager(self.env, self.cluster)
         self.stream  = StreamingData(self.env, self.manager)
+        Actor = self.initial_actor(INITIAL_COLOR)
 
         # Create actor programs for every node in the cluster.
         for node in self.cluster.nodes:
             for idx in xrange(node.cpus):
-                program = BlueActor(self.env, self.manager, ports=[idx+10, idx+20])
+                program = Actor(self.env, self.manager, ports=[idx+10, idx+20])
                 node.assign(program)
