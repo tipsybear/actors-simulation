@@ -106,7 +106,7 @@ Actor model MIT dissertation \cite{hewitt_viewing_1977, agha_actors:_1985}
     \label{fig:architecture}
 \end{figure}
 
-% TODO: Kostas, can you take a swing at this while I'm dealing with kids?
+The main source of inspiration for this work was the Orleans framework for building distributed applications. We believe Orleans' focus on \textit{programmability} and \textit{scalability} resonates with today's needs for ever-demanding large-scale distributed applications that need to be able to easily and continuously scale horizontally. The Orleans  framework defines a model based on a modernized variation of the actor model, known as a \textit{Virtual Actor Space}. In essence, a Virtual Actor Space consists of a set of virtual memory addresses, that can arbitrarily be used
 - Orleans was inspired by and is a modern outlook on the traditional actor model.
 - Basic idea: Virtual actors are logical entities that always exist. Actors have activations, and an activation can be spawned anywhere in the system. Actors are either stateful (only one activation at a time) or stateless (unboundedly scalable).
 - Meant as a framework for easily and  intuitively programming distributed systems.
@@ -193,7 +193,7 @@ As we analyzed the above applications we began to notice that they broadly defin
 
 Figure \ref{fig:communications_patterns} shows the corresponding communications patterns we developed from each application. The email dataflow application (a) shows a communication pattern that is unidirectional and that includes branching, partial communication. In this application a message is replicated across the cluster, usually less times than there are actors. The online recommender (b) however, shows a communication model that is front loaded, and iterative; here more messages are generated during processing than those that are incoming. These messages are then passed downstream to finalizing actors where there is more balance. Finally, the solar prediction application (c) instead reflects a multi-channel, full communication approach; where data is buffered at the front (e.g. the weaker models) then boosted through the stronger models (representing a bottleneck) before being output at the end.
 
-While these simplifications necessarily gloss over the computational requirements of an actor cast implementation of these applications, we believe that a focus on the communication patterns of actors represents the weakest point in a generalized virtual actor space. Techniques like speculative execution and heartbeat monitoring of processes allow for fault tolerance inside of communication, however the primary scaling and load balancing techniques are based solely on message load and throughput. In the next section we will discuss how we implemented our simulation of actor communication. 
+While these simplifications necessarily gloss over the computational requirements of an actor cast implementation of these applications, we believe that a focus on the communication patterns of actors represents the weakest point in a generalized virtual actor space. Techniques like speculative execution and heartbeat monitoring of processes allow for fault tolerance inside of communication, however the primary scaling and load balancing techniques are based solely on message load and throughput. In the next section we will discuss how we implemented our simulation of actor communication.
 
 \section{Simulation Methodology}
 
