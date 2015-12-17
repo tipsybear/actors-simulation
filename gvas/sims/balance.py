@@ -68,7 +68,7 @@ class StreamingData(Process):
             volume = int(self.stream.next())
             if volume > 0:
                 for idx in xrange(volume):
-                    self.service.queue.append(Message(None, None, self.values.get(), MESSAGE_SIZE))
+                    self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE, self.env.now))
 
             self.last_volume = volume
             yield self.env.timeout(1)

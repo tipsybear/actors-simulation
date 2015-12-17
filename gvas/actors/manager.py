@@ -56,7 +56,8 @@ class ActorManager(Process, LoggingMixin):
             self.available = self.get_available_actors()
 
             for msg in queue:
-                self.route(msg)
+                if msg.sent < self.env.now:
+                    self.route(msg)
 
             # Send deactivate message to actors if needed
             self.balance()
