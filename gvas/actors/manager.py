@@ -28,6 +28,7 @@ from collections import deque
 ##########################################################################
 
 DEACTIVATION_BUFFER     = settings.simulations.balance.deactivation_buffer
+QUEUE_LAG               = settings.simulations.balance.queue_lag
 
 ##########################################################################
 ## Actor Manager
@@ -110,7 +111,7 @@ class ActorManager(Process, LoggingMixin):
 
             for msg in queue:
                 # send messages if they are "old" enough
-                if msg.sent < self.env.now - 10:
+                if msg.sent < self.env.now - QUEUE_LAG:
                     self.route(msg)
                 else:
                     self.queue.append(msg)

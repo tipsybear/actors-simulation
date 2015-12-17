@@ -84,3 +84,4 @@ simulations:
         spike_scale: 3
         volume_threshold: 5
         deactivation_buffer: 5
+        queue_lag: 0
