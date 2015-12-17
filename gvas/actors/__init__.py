@@ -21,3 +21,4 @@ from .base import ActorProgram
 from .manager import ActorManager, CommunicationsManager
 from .blue import *
 from .green import *
+from .red import *

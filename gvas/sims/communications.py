@@ -22,7 +22,7 @@ from gvas.dynamo import Stream, Normal
 from gvas.cluster.network import Message
 from gvas.base import Simulation, Process
 from gvas.cluster import create_default_cluster
-from gvas.actors import BlueActor, GreenActor, CommunicationsManager
+from gvas.actors import BlueActor, GreenActor, RedActor, CommunicationsManager
 from gvas.utils.logger import LoggingMixin
 from .balance import BalanceSimulation
 
@@ -96,6 +96,8 @@ class CommunicationsSimulation(BalanceSimulation):
             return BlueActor
         if color == 'green':
             return GreenActor
+        if color == 'red':
+            return RedActor
 
     def script(self):
         """
