@@ -97,7 +97,7 @@ class Network(object):
         bandwidth.
         """
         delay = 100 - int(float(self.bandwidth) / float(self.capacity) * 100)
-        return self.base_latency + delay
+        return self.base_latency #+ delay
 
     @property
     def traffic(self):

@@ -99,7 +99,7 @@ class Results(object):
             return self.title
 
         return '{} Simulation on {}'.format(
-            self.simulation, self.get_finished().strftime(HUMAN_DATETIME)
+            self.simulation.rstrip('Simulation'), self.get_finished().strftime(HUMAN_DATETIME)
         )
 
     def get_finished(self):
