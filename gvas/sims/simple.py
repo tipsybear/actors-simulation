@@ -70,13 +70,14 @@ class SimpleSimulation(Simulation):
             # self.diary.update('message_count', self._message_count)
             # self.diary.update('message_size', self._message_size)
             # self.diary.update('avg_bandwidth', self._avg_bandwidth)
-            # self.diary.update('avg_used_bandwidth', self._avg_used_bandwidth)
+            # self.diary.update('Congestion', self._avg_used_bandwidth)
             msg_size  = float(self._message_size)
             msg_count = float(self._message_count)
             avg_msg   = msg_size / msg_count if msg_count > 0 else 0.0
 
-            self.diary.update('avg_message_size', avg_msg)
-            self.diary.update('avg_latency', self._avg_latency)
+            self.diary.update('Number of Messages', msg_count)
+            self.diary.update('Mean Message Size', avg_msg)
+            self.diary.update('Mean Latency', self._avg_latency)
             yield self.env.timeout(1)
 
     @property
@@ -86,8 +87,7 @@ class SimpleSimulation(Simulation):
         """
         size = 0
         for r in self.cluster.racks.itervalues():
-            traffic = r.network.capacity - r.network.bandwidth
-            size += traffic
+            size += r.network.traffic
         return size
 
     @property

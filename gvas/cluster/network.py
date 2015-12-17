@@ -105,7 +105,7 @@ class Network(object):
         Returns the total size of messages on the network (opposite of
         bandwidth, e.g. the used bandwidth of the network).
         """
-        return self.capacity - self.bandwdith
+        return self.capacity - self.bandwidth
 
     def __str__(self):
         return "Network: capacity={},  bandwidth={}, base_latency={}, latency={}".format(
