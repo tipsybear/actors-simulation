@@ -56,24 +56,24 @@ class RedActor(ActorProgram):
 
     def _handle_red(self, message):
         for i in range(4):
-            msg = Message(None, None, 1, MESSAGE_SIZE, self.env.now, 'magenta')
+            msg = Message(self.address, None, 1, MESSAGE_SIZE, self.env.now, 'magenta')
             self.outbox.append(msg)
 
     def _handle_magenta(self, message):
         for i in range(2):
-            msg = Message(None, None, 1, MESSAGE_SIZE, self.env.now, 'crimson')
+            msg = Message(self.address, None, 1, MESSAGE_SIZE, self.env.now, 'crimson')
             self.outbox.append(msg)
 
     def _handle_crimson(self, message):
         for i in range(3):
-            msg = Message(None, None, 1, MESSAGE_SIZE, self.env.now, 'apple')
+            msg = Message(self.address, None, 1, MESSAGE_SIZE, self.env.now, 'apple')
             self.outbox.append(msg)
 
     def _handle_apple(self, message):
         pass
 
     def handle(self, message):
-        self.logger.info("ACTOR: ID: {}, WORKING ({})".format(self.id, message.color))
+        self.logger.debug("ACTOR: ID: {}, WORKING ({})".format(self.id, message.color))
         yield self.env.timeout(0)
 
         color = message.color

@@ -29,6 +29,9 @@ vizualization:
 random_seed:  42
 max_sim_time: 1000
 
+## Output graph log statements for graphing downstream
+graph_comms: False
+
 ## Logging parameters
 logging:
     level: INFO

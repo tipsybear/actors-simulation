@@ -72,7 +72,7 @@ class ActorProgram(Program, LoggingMixin):
         """
         On activation hydrate the actor to start listening for messages.
         """
-        self.logger.info("ACTOR: ID: {}, ACTIVATING".format(self.id))
+        self.logger.debug("ACTOR: ID: {}, ACTIVATING".format(self.id))
         self.active  = True
         self.hydrate.succeed()
         self.hydrate = None
@@ -81,7 +81,7 @@ class ActorProgram(Program, LoggingMixin):
         """
         On deactivation, dehydrate the actor to stop listening for messages.
         """
-        self.logger.info("ACTOR: ID: {}, DEACTIVATING".format(self.id))
+        self.logger.debug("ACTOR: ID: {}, DEACTIVATING".format(self.id))
         self.active  = False
         self.hydrate = self.env.event()
         yield self.hydrate
@@ -90,7 +90,7 @@ class ActorProgram(Program, LoggingMixin):
         """
         Listen for an incomming message
         """
-        self.logger.info("ACTOR: ID: {}, LISTENING".format(self.id))
+        self.logger.debug("ACTOR: ID: {}, LISTENING".format(self.id))
         self.ready = True
         self.message = self.env.event()
         value = yield self.message
@@ -119,7 +119,7 @@ class ActorProgram(Program, LoggingMixin):
         """
         Called on receipt of a message from the node.
         """
-        self.logger.info("ACTOR: ID: {}, RECV".format(self.id))
+        self.logger.debug("ACTOR: ID: {}, RECV".format(self.id))
         self.ready = False
         self.message.succeed(value)
         self.message = None
