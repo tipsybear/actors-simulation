@@ -60,22 +60,22 @@ class GreenActor(ActorProgram):
 
     def _handle_green(self, message):
         for i in range(2):
-            msg = Message(None, None, 3, MESSAGE_SIZE, self.env.now, 'forest')
+            msg = Message(self.address, None, 3, MESSAGE_SIZE, self.env.now, 'forest')
             self.outbox.append(msg)
 
     def _handle_forest(self, message):
         if message.value > 1:
-            msg = Message(None, None, message.value - 1, MESSAGE_SIZE, self.env.now, 'forest')
+            msg = Message(self.address, None, message.value - 1, MESSAGE_SIZE, self.env.now, 'forest')
             self.outbox.append(msg)
         else:
-            msg = Message(None, None, 1, MESSAGE_SIZE, self.env.now, 'seagreen')
+            msg = Message(self.address, None, 1, MESSAGE_SIZE, self.env.now, 'seagreen')
             self.outbox.append(msg)
 
     def _handle_seagreen(self, message):
         pass
 
     def handle(self, message):
-        self.logger.info("ACTOR: ID: {}, WORKING ({})".format(self.id, message.color))
+        self.logger.debug("ACTOR: ID: {}, WORKING ({})".format(self.id, message.color))
         yield self.env.timeout(0)
 
         color = message.color

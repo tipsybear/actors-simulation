@@ -71,5 +71,9 @@ class RunCommand(Command):
             args.output = open(path, 'w')
         simulation.diary.dump(args.output)
 
-
+        # Dump the graphml of the comms.
+        if simulation.manager.comms:
+            path = "{}-{}.graphml".format(sname, simulation.diary.get_finished().strftime("%Y%m%d"))
+            simulation.manager.comms.dump(path)
+            
         return "Results for {} simulation written to {}".format(sname, args.output.name)

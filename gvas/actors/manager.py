@@ -22,6 +22,7 @@ from collections import defaultdict
 from gvas.base import Process
 from gvas.config import settings
 from gvas.utils.logger import LoggingMixin
+from gvas.utils.graph import CommsGraph
 
 from collections import deque
 
@@ -31,6 +32,7 @@ from collections import deque
 
 DEACTIVATION_BUFFER     = settings.simulations.balance.deactivation_buffer
 QUEUE_LAG               = settings.simulations.balance.queue_lag
+GRAPH_COMMS             = settings.graph_comms
 
 ##########################################################################
 ## Actor Manager
@@ -46,13 +48,18 @@ class ActorManager(Process, LoggingMixin):
         self.route_count = 0
         self.cluster = cluster  # The actor manager is a master process on the cluster
         self.queue   = deque()  # The message queue if there are no available actors
+
+        # Create a Graph for communications if requested
+        self.comms = CommsGraph() if GRAPH_COMMS else None
+
+        # Init the process with the environment
         super(ActorManager, self).__init__(env)
 
     def _balance_up(self):
         """
         Activates inactive actors
         """
-        self.logger.info("MANAGER: ACTIVATIONS REQUESTED: {}".format(self.activations_requested))
+        self.logger.debug("MANAGER: ACTIVATIONS REQUESTED: {}".format(self.activations_requested))
 
         if self.activations_requested:
             # get a list of inactive programs
@@ -74,15 +81,15 @@ class ActorManager(Process, LoggingMixin):
         if the queue is empty; deactivate actors that haven't been routed to,
         less the number of routes we had this timestep + some buffer (like 5 maybe)
         """
-        self.logger.info("MANAGER: DEACTIVATION PHASE".format())
+        self.logger.debug("MANAGER: DEACTIVATION PHASE".format())
 
-        self.logger.info(len(self.queue))
+        self.logger.debug("MESSAGE QUEUE SIZE: {}".format(len(self.queue)))
         if not self.queue:
             ready = self.filter(lambda a: a.ready)
             ready_count = len(ready)
             total_to_deactivate = ready_count - self.route_count + DEACTIVATION_BUFFER
 
-            self.logger.info("MANAGER: DEACTIVATING {}".format(min(total_to_deactivate, ready_count)))
+            self.logger.debug("MANAGER: DEACTIVATING {}".format(min(total_to_deactivate, ready_count)))
             for i in range(min(total_to_deactivate, ready_count)):
                 self.env.process(ready[i].deactivate())
 
@@ -152,16 +159,16 @@ class ActorManager(Process, LoggingMixin):
         """
         Select the next available actor in the cluster
         """
+        # Phase one: look for an active and ready actor
+        for actor in self.filter(lambda a: a.active and a.ready):
+            yield actor
+
+        # Otherwise we need to activate an actor
+        for actor in self.filter(lambda a: not a.active):
+            yield actor
+
+        # No actors are available at all!
         while True:
-            # Phase one: look for an active and ready actor
-            for actor in self.filter(lambda a: a.active and a.ready):
-                yield actor
-
-            # Otherwise we need to activate an actor
-            for actor in self.filter(lambda a: not a.active):
-                yield actor
-
-            # No actors are available at all!
             yield None
 
     def route(self, message):
@@ -195,16 +202,22 @@ class ActorManager(Process, LoggingMixin):
 
                 # Mark actor as queued and send the message
                 actor.ready = False
-                self.logger.info("MANAGER: SENDING TO {}".format(actor.id))
+                self.logger.debug("MANAGER: SENDING TO {}".format(actor.id))
+
+                # Add the communication to the graph
+                if GRAPH_COMMS:
+                    self.comms.add_message(message)
+
+                # Send the message and return
                 return source.send(message)
 
             if not actor.active:
                 # request an activation by the balancer
-                self.logger.info("MANAGER: REQUESTING ACTIVATION")
+                self.logger.debug("MANAGER: REQUESTING ACTIVATION")
                 self.activations_requested += 1
 
         # We could do nothing, so queue the message
-        self.logger.info("MANAGER: QUEUEING MESSAGE")
+        self.logger.debug("MANAGER: QUEUEING MESSAGE")
         message = message._replace(dst=None)
         self.queue.append(message)
 
@@ -221,7 +234,7 @@ class CommunicationsManager(ActorManager):
         are still needed
         """
         count = 0
-        self.logger.info("BALANCE UP")
+        self.logger.debug("BALANCE UP")
         if self.activations_requested:
             # query for ready but may not be correct color
             ready = self.filter(lambda a: a.active and a.ready)
@@ -235,7 +248,7 @@ class CommunicationsManager(ActorManager):
                     if ready:
                         actor = ready.pop()
                         actor.color = color
-                        self.logger.info("MANAGER: SWITCHING COLORS: {} ({})".format(actor.id, color))
+                        self.logger.debug("MANAGER: SWITCHING COLORS: {} ({})".format(actor.id, color))
                     elif inactive:
                         # only activate every other request
                         count += 1
@@ -243,7 +256,7 @@ class CommunicationsManager(ActorManager):
                         if True:
                             actor = inactive.pop()
                             actor.color = color
-                            self.logger.info("MANAGER: ACTIVATING: {} ({})".format(actor.id, color))
+                            self.logger.debug("MANAGER: ACTIVATING: {} ({})".format(actor.id, color))
                             actor.activate()
 
             # reset counter
@@ -295,15 +308,21 @@ class CommunicationsManager(ActorManager):
 
                 # Mark actor as queued and send the message
                 actor.ready = False
-                self.logger.info("MANAGER: SENDING TO {} ({})".format(actor.id, message.color))
+                self.logger.debug("MANAGER: SENDING TO {} ({})".format(actor.id, message.color))
+
+                # Add the communication to the graph
+                if GRAPH_COMMS:
+                    self.comms.add_message(message)
+
+                # Send the message and return
                 return source.send(message)
 
             if not actor.active:
                 # request an activation by the balancer
-                self.logger.info("MANAGER: REQUESTING ACTIVATION")
+                self.logger.debug("MANAGER: REQUESTING ACTIVATION")
                 self.activations_requested[message.color] += 1
 
         # We could do nothing, so queue the message
-        self.logger.info("MANAGER: QUEUEING MESSAGE ({})".format(message.color))
+        self.logger.debug("MANAGER: QUEUEING MESSAGE ({})".format(message.color))
         message = message._replace(dst=None)
         self.queue.append(message)

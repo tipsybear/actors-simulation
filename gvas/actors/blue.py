@@ -60,12 +60,12 @@ maybe go in three-four colors
             return self.colors[index + 1]
 
     def handle(self, message):
-        self.logger.info("ACTOR: ID: {}, WORKING ({})".format(self.id, message.color))
+        self.logger.debug("ACTOR: ID: {}, WORKING ({})".format(self.id, message.color))
         yield self.env.timeout(0)
 
         # add to outbox
         color = self.next_color()
         if color:
             for i in range(random.randint(0, 2)):
-                msg = Message(None, None, 1, MESSAGE_SIZE, self.env.now, color)
+                msg = Message(self.address, None, 1, MESSAGE_SIZE, self.env.now, color)
                 self.outbox.append(msg)

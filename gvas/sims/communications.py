@@ -68,7 +68,7 @@ class StreamingData(Process, LoggingMixin):
         while True:
             volume = int(self.stream.next())
             if volume > 0:
-                self.logger.info("STREAM: NEW MESSAGES: {}".format(volume))
+                self.logger.debug("STREAM: NEW MESSAGES: {}".format(volume))
                 for idx in xrange(volume):
                     self.service.route(Message(None, None, self.values.get(), MESSAGE_SIZE, self.env.now, INITIAL_COLOR))
 

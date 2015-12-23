@@ -150,6 +150,7 @@ class GVASSimulationConfiguration(Configuration):
 
     debug         = False
     testing       = False
+    graph_comms   = False
 
     # Visualization parameters
     vizualization = VisualizationConfiguration()
