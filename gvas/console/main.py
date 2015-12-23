@@ -37,6 +37,7 @@ COMMANDS    = [
     ListCommand,
     RunCommand,
     VizCommand,
+    GraphCommand,
 ]
 
 ##########################################################################

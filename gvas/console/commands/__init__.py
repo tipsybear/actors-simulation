@@ -21,3 +21,4 @@ A module containing all the GVAS commands
 from .list import ListCommand
 from .run import RunCommand
 from .viz import VizCommand
+from .graph import GraphCommand
