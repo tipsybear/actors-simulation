@@ -104,6 +104,12 @@ We propose to develop a proof of concept Actor framework to show that this abstr
 
 We will measure the performance of the Actor framework including the ability to handle multiple, streaming applications simultaneously as well as its ability to persist and recover from failure. We will also show through a simple user study the benefits and ease of use of the Actor model.
 
+## Communications Patterns 
+
+![Blue Communications Pattern](docs/images/bluecomms.png)
+![Green Communications Pattern](docs/images/greencomms.png)
+![Red Communications Pattern](docs/images/redcomms.png)
+
 
 ### Attribution
 
